@@ -2,11 +2,11 @@
 // Firebase console → Project settings → General → Your apps → SDK setup → Config.
 // Keep this file next to index.html. It never changes when the game is updated.
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE-your-project.firebaseapp.com",
-  databaseURL: "https://PASTE-your-project-default-rtdb.firebaseio.com",
-  projectId: "PASTE-your-project",
-  storageBucket: "PASTE-your-project.appspot.com",
-  messagingSenderId: "PASTE",
-  appId: "PASTE"
+  apiKey: "AIzaSyBy7fuarnult7bUMSEg3TgAgJuDe9V2d-g",
+  authDomain: "fold-and-press.firebaseapp.com",
+  databaseURL: "https://fold-and-press-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fold-and-press",
+  storageBucket: "fold-and-press.firebasestorage.app",
+  messagingSenderId: "214382134849",
+  appId: "1:214382134849:web:e968c4ccf75ff5b8f1a8c0"
 };
