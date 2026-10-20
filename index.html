@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fold &amp; Press — the stickman paper battle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Fold &amp; Press: the stickman paper battle</title>
+<meta name="theme-color" content="#214440">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fold &amp; Press">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
@@ -18,21 +26,25 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{font-family:'Nunito',system-ui,-apple-system,sans-serif;color:var(--text);background:radial-gradient(900px 600px at 50% -20%,#2f5f59,var(--desk) 55%,var(--desk-deep));min-height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{font-family:'Nunito',system-ui,-apple-system,sans-serif;color:var(--text);background:radial-gradient(900px 600px at 50% -20%,#2f5f59,var(--desk) 55%,var(--desk-deep));min-height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-font-smoothing:antialiased;overflow-x:hidden;touch-action:manipulation;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 h1,h2,h3{font-family:'Patrick Hand','Comic Sans MS',cursive;font-weight:400;margin:0;letter-spacing:.3px}
 h1{font-size:2.7rem;line-height:1}
 h2{font-size:1.8rem}
-h3{font-size:1.3rem;color:var(--muted);margin:20px 0 8px}
+h3{font-size:1.3rem;color:var(--muted);margin:20px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+h3 .sub{font-family:'Nunito',sans-serif;font-size:.8rem;color:var(--muted)}
+h4{font-family:'Nunito',sans-serif;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px;display:flex;justify-content:space-between;align-items:center}
+h4 button{padding:2px 6px;font-size:.78rem;letter-spacing:0;text-transform:none}
 button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 18px;font-weight:700;transition:transform .08s ease;touch-action:manipulation}
 button:active{transform:scale(.97)}
 button:disabled{opacity:.5;cursor:default;transform:none}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button.primary{background:var(--accent);color:var(--accent-ink)}
 button.secondary{background:var(--card);color:var(--text);border:1px solid var(--card-line)}
+button.danger{background:rgba(224,90,90,.18);color:#ffb3b3;border:1px solid rgba(224,90,90,.4)}
 button.ghost{background:transparent;color:var(--muted);padding:8px 10px}
 button.link{background:none;color:var(--muted);text-decoration:underline;padding:4px 2px;font-weight:600}
 button.wide{width:100%}
-input,select{font:inherit;width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--card-line);background:rgba(0,0,0,.25);color:var(--text);outline:none}
+input,select{font:inherit;width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--card-line);background:rgba(0,0,0,.25);color:var(--text);outline:none;font-size:16px}
 input:focus,select:focus{border-color:var(--accent)}
 select option{color:#111}
 .screen{display:none;min-height:100%;padding:16px}
@@ -52,11 +64,13 @@ select option{color:#111}
 .how{color:var(--muted);font-size:.9rem;margin:16px 0 0;line-height:1.45}
 .hint{color:var(--muted);font-size:.88rem;margin:8px 0 10px;line-height:1.4}
 .uname{color:var(--muted);font-size:.9rem}
+.stats{color:var(--muted);font-size:.88rem;margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.stats b{color:var(--text)}
 .row{display:flex;gap:10px;align-items:flex-end}
 .row.between{align-items:center;justify-content:space-between}
 .row>input{flex:1}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid2 label{font-size:.9rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;text-align:left}
+.grid2 label{font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;text-align:left}
 .list{display:flex;flex-direction:column;gap:6px}
 .item{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;text-align:left}
 .item.turn{border-color:var(--accent)}
@@ -72,19 +86,20 @@ select option{color:#111}
 .hidden{display:none!important}
 
 /* ---- game screen: the paper fills everything between the top bar and the controls ---- */
-#screen-game{padding:0;overflow:hidden}
+#screen-game{padding:0;overflow:hidden;user-select:none;-webkit-user-select:none}
 #screen-game.active{display:flex;flex-direction:column;height:100vh;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:0}
-.gbar{flex:none;width:100%;display:flex;align-items:center;gap:8px;padding:6px 10px 4px;font-size:.9rem}
-.gbar .code{font-family:'Patrick Hand',cursive;font-size:1.3rem;letter-spacing:.1em;color:var(--accent)}
-.gbar .link{padding:4px 4px;font-size:.82rem}
-.gbar .standing{flex:1;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gbar{flex:none;width:100%;display:flex;align-items:center;gap:6px;padding:6px 8px 4px;font-size:.85rem}
+.gbar .code{font-family:'Patrick Hand',cursive;font-size:1.25rem;letter-spacing:.1em;color:var(--accent)}
+.gbar .icon{background:none;color:var(--muted);padding:4px 6px;font-size:1.05rem;line-height:1}
+.gbar .standing{flex:1;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.82rem}
 .gbar .standing b{color:var(--text)}
-.gbar .ghost{padding:6px 8px}
+.gbar .standing .acc{color:var(--accent);font-weight:700}
+.gbar .ghost{padding:6px 6px;font-size:.85rem}
 .stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
 .paper-wrap{perspective:1800px;perspective-origin:50% 50%;margin:0}
-.paper{position:relative;width:300px;height:500px;transform-style:preserve-3d}
+.paper{position:relative;width:300px;height:600px;transform-style:preserve-3d}
 .paper::before{content:'';position:absolute;inset:0;border-radius:6px;box-shadow:0 16px 34px rgba(0,0,0,.5);transform:translateZ(-1px)}
-.half{position:absolute;left:0;width:100%;height:50%;transform-style:preserve-3d}
+.half{position:absolute;left:0;width:100%;height:50%;transform-style:preserve-3d;--slip:0px;--slipy:0px;--rot:0deg}
 .half.top{top:0;transform-origin:50% 100%}
 .half.bottom{top:50%;transform-origin:50% 0}
 .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--paper)}
@@ -96,10 +111,13 @@ select option{color:#111}
 .half.top .shade{background:linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,.05) 70%);border-radius:6px 6px 0 0}
 .half.bottom .shade{background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,.05) 70%);border-radius:0 0 6px 6px}
 .half.covered .shade{animation:shade var(--fold-ms) linear}
+.crease{position:absolute;left:0;right:0;top:50%;border-top:2px dashed rgba(60,50,30,.35);transform:translateZ(1px);pointer-events:none;display:none}
+.paper.show-crease .crease{display:block}
 .half.fold-up{animation:foldUp var(--fold-ms) cubic-bezier(.5,0,.25,1)}
 .half.fold-down{animation:foldDown var(--fold-ms) cubic-bezier(.5,0,.25,1)}
-@keyframes foldUp{0%{transform:translateZ(2px) rotateX(0)}42%{transform:translateZ(2px) rotateX(180deg)}60%{transform:translateZ(2px) rotateX(180deg)}100%{transform:translateZ(2px) rotateX(0)}}
-@keyframes foldDown{0%{transform:translateZ(2px) rotateX(0)}42%{transform:translateZ(2px) rotateX(-180deg)}60%{transform:translateZ(2px) rotateX(-180deg)}100%{transform:translateZ(2px) rotateX(0)}}
+/* the keyframes keep the same transform list throughout so each function interpolates on its own; a slipped press lands offset and crooked */
+@keyframes foldUp{0%{transform:translate(0px,0px) rotate(0deg) translateZ(2px) rotateX(0deg)}42%{transform:translate(var(--slip),var(--slipy)) rotate(var(--rot)) translateZ(2px) rotateX(180deg)}60%{transform:translate(var(--slip),var(--slipy)) rotate(var(--rot)) translateZ(2px) rotateX(180deg)}100%{transform:translate(0px,0px) rotate(0deg) translateZ(2px) rotateX(0deg)}}
+@keyframes foldDown{0%{transform:translate(0px,0px) rotate(0deg) translateZ(2px) rotateX(0deg)}42%{transform:translate(var(--slip),var(--slipy)) rotate(var(--rot)) translateZ(2px) rotateX(-180deg)}60%{transform:translate(var(--slip),var(--slipy)) rotate(var(--rot)) translateZ(2px) rotateX(-180deg)}100%{transform:translate(0px,0px) rotate(0deg) translateZ(2px) rotateX(0deg)}}
 @keyframes shade{0%{opacity:0}30%{opacity:.75}62%{opacity:.75}100%{opacity:0}}
 .paper.busy .face.front svg{pointer-events:none}
 
@@ -119,7 +137,9 @@ select option{color:#111}
 @keyframes ring{0%,100%{stroke-opacity:.25}50%{stroke-opacity:.85}}
 @media (prefers-reduced-motion:reduce){
   :root{--fold-ms:900ms}
-  .blob.fresh,.fig.dead.fresh,.fig.dead.fresh .xmark line,.aimring{animation-duration:.01ms!important;animation-delay:0s!important}
+  .blob.fresh,.fig.dead.fresh,.fig.dead.fresh .xmark line,.aimring,.headshot span,.paper.shake,.hsring circle,.slide,.banner,.selring{animation-duration:.01ms!important;animation-delay:0s!important}
+  .fig.theirs.hiding,.fig.theirs.unhiding,.blob.fading,.fig.dead.vanish{animation-duration:.2s!important}
+  .coin,.coin-shadow{animation-duration:.4s!important}
 }
 
 .panel{flex:none;width:100%;padding:6px 10px 8px;text-align:center}
@@ -129,17 +149,96 @@ select option{color:#111}
 .actions button{min-width:120px;padding:11px 18px}
 .meter{width:100%;max-width:340px;margin:0 auto}
 .meter-label{font-size:.85rem;color:var(--muted);margin-bottom:6px}
-.track{position:relative;height:24px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid var(--card-line);overflow:hidden;cursor:pointer;touch-action:manipulation}
+.track{position:relative;height:26px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid var(--card-line);overflow:hidden;cursor:pointer;touch-action:manipulation}
 .track .zone{position:absolute;left:45.5%;width:9%;top:0;bottom:0;background:rgba(245,194,66,.4)}
 .track .mark{position:absolute;top:2px;bottom:2px;width:6px;margin-left:-3px;left:0;background:#fff;border-radius:3px;box-shadow:0 0 6px rgba(255,255,255,.7)}
 
 /* ---- overlay + toast ---- */
 .overlay{position:fixed;inset:0;background:rgba(10,20,18,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
-.overlay .box{background:#24403d;border:1px solid var(--card-line);border-radius:20px;padding:24px;max-width:380px;width:100%;text-align:center}
+.overlay .box{position:relative;z-index:1;background:#24403d;border:1px solid var(--card-line);border-radius:20px;padding:24px;max-width:380px;width:100%;text-align:center;max-height:90vh;overflow:auto}
+.overlay canvas.fireworks{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.overlay .box.wide{max-width:460px;padding:20px 18px}
+.setup-sub{margin:4px 0 10px;font-size:.9rem}
+.presets{display:flex;gap:6px;background:rgba(0,0,0,.25);padding:4px;border-radius:12px;margin:6px 0 4px}
+.preset{flex:1;background:transparent;color:var(--muted);padding:9px 4px;font-size:.9rem}
+.preset.active{background:var(--accent);color:var(--accent-ink)}
+.setup{text-align:left}
+.setup h4{margin:12px 0 6px}
+.setup select{padding:10px 12px}
+.ways{display:flex;flex-direction:column;gap:8px}
+.ways .row>input{flex:1}
+@media (max-width:380px){.setup .grid2{grid-template-columns:1fr}.overlay .box.wide{padding:16px 14px}}
+
+/* ---- coin flip ---- */
+.coin-sides{display:flex;justify-content:space-between;font-size:.85rem;margin:6px 0 0}
+.coin-wrap{height:190px;display:flex;align-items:flex-end;justify-content:center;perspective:900px;position:relative;margin:4px 0}
+.coin{position:relative;width:110px;height:110px;transform-style:preserve-3d;animation:coinflip 2.3s cubic-bezier(.3,.1,.2,1) forwards;margin-bottom:24px}
+.cface{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Patrick Hand',cursive;border:5px solid #c99a2e;box-shadow:inset 0 0 0 4px #ffe08a,inset 0 0 24px rgba(0,0,0,.25)}
+.cface span{font-size:3rem;line-height:1;color:#5a3f08}
+.cface small{font-family:'Nunito',sans-serif;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:#7a5a12}
+.cface.heads{background:radial-gradient(circle at 35% 30%,#ffe9a8,#f5c242 60%,#d9a32a)}
+.cface.tails{background:radial-gradient(circle at 35% 30%,#fff1c9,#f0bd48 60%,#cf9a26);transform:rotateX(180deg)}
+.coin-shadow{position:absolute;bottom:14px;left:50%;width:90px;height:16px;margin-left:-45px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(4px);animation:coinshadow 2.3s cubic-bezier(.3,.1,.2,1) forwards}
+.coin-result{min-height:1.5em;font-size:1.1rem;color:var(--text)}
+.coin-result b{color:var(--accent)}
+@keyframes coinflip{0%{transform:translateY(0) rotateX(0deg)}45%{transform:translateY(-120px) rotateX(calc(var(--end) * .55))}85%{transform:translateY(0) rotateX(calc(var(--end) * .97))}92%{transform:translateY(-10px) rotateX(var(--end))}100%{transform:translateY(0) rotateX(var(--end))}}
+@keyframes coinshadow{0%{transform:scale(1);opacity:.45}45%{transform:scale(.45);opacity:.15}85%{transform:scale(1);opacity:.45}100%{transform:scale(1);opacity:.45}}
+
+/* ---- event banners ---- */
+.banners{position:absolute;top:44px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:6}
+.banner{display:flex;align-items:center;gap:8px;background:rgba(15,31,29,.92);color:var(--text);border:1px solid var(--card-line);border-radius:999px;padding:8px 16px;font-weight:700;font-size:.95rem;max-width:92vw;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:bannerIn .38s cubic-bezier(.2,.9,.3,1.2) both}
+.banner.out{animation:bannerOut .36s ease-in forwards}
+.banner .bicon{font-size:1.15rem;line-height:1}
+.banner.hit{border-color:rgba(196,30,30,.6)}
+.banner.miss{color:var(--muted)}
+.banner.ghost{background:rgba(44,32,84,.94);border-color:rgba(160,140,230,.5);color:#e4dcff}
+.banner.move{background:rgba(22,52,70,.94);border-color:rgba(120,190,230,.5);color:#dff2ff}
+.banner.turn{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.banner.hs{background:#c41e1e;color:#fff;border-color:transparent;font-family:'Patrick Hand',cursive;font-size:1.3rem;letter-spacing:.04em}
+@keyframes bannerIn{from{opacity:0;transform:translateY(-18px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bannerOut{to{opacity:0;transform:translateY(-12px) scale(.96)}}
+.actions button small{font-size:.75rem;opacity:.8;margin-left:4px}
+
+/* ---- powers: sliding, hiding, ghosting, picking ---- */
+.slide{animation:slideIn 1.05s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slideIn{from{transform:translate(var(--fdx),var(--fdy))}to{transform:translate(0,0)}}
+.fig.theirs.hiding{animation:fadeOut .9s ease-in forwards}
+.fig.theirs.unhiding{animation:fadeIn .9s ease-out both}
+@keyframes fadeOut{to{opacity:0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fig.ghost{opacity:.45}
+.fig.ghost path,.fig.ghost circle{stroke-dasharray:3 2.5}
+.fig.ghost .ghostlbl{opacity:.9}
+.fig.preview{opacity:.75}
+.fig.mine.pick{cursor:pointer}
+.selring{transform-box:fill-box;transform-origin:center;animation:selpulse 1.1s ease-in-out infinite}
+@keyframes selpulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.08);opacity:1}}
+.blob.fading{animation:inkFade .95s ease-in forwards}
+@keyframes inkFade{to{opacity:0;filter:blur(1px)}}
+.hint-inline{font-family:'Nunito',sans-serif;font-size:.75rem;letter-spacing:0;text-transform:none;color:var(--muted)}
+
+/* ---- headshot ---- */
+#screen-game{position:relative}
+.headshot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
+.headshot span{font-family:'Patrick Hand',cursive;font-size:3.4rem;color:#c41e1e;letter-spacing:.06em;text-shadow:0 2px 0 #fbf8ec,0 4px 18px rgba(0,0,0,.5);animation:hsplash 1.7s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes hsplash{0%{transform:scale(3.2) rotate(-10deg);opacity:0}14%{transform:scale(1) rotate(-6deg);opacity:1}22%{transform:scale(1.12) rotate(-6deg)}30%{transform:scale(1) rotate(-6deg)}70%{opacity:1;transform:scale(1) rotate(-6deg)}100%{opacity:0;transform:scale(1.15) rotate(-6deg) translateY(-24px)}}
+.paper.shake{animation:shake .5s ease-out}
+@keyframes shake{0%,100%{transform:translate(0,0)}15%{transform:translate(-5px,3px) rotate(-.6deg)}30%{transform:translate(5px,-3px) rotate(.6deg)}45%{transform:translate(-4px,2px)}60%{transform:translate(4px,-2px)}75%{transform:translate(-2px,1px)}}
+.hsring circle{transform-box:fill-box;transform-origin:center;animation:hsring 1s ease-out forwards}
+.hsring circle:nth-child(2){animation-delay:.18s}
+@keyframes hsring{from{transform:scale(1);opacity:1}to{transform:scale(4.5);opacity:0}}
+.fig.dead.vanish{animation:popIn .4s ease-out both,vanish .7s ease-in forwards 1.2s}
+@keyframes vanish{to{opacity:0}}
 .overlay p{color:var(--muted);line-height:1.45}
 .overlay input{margin-top:10px}
 .overlay .btns{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.overlay .recap{list-style:none;padding:0;margin:12px 0 0;color:var(--muted);line-height:1.7;text-align:left}
+.overlay .recap,.overlay .results{list-style:none;padding:0;margin:12px 0 0;color:var(--muted);line-height:1.7;text-align:left}
+.overlay .results li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--card-line);padding:4px 0}
+.overlay .results .w{color:#8fe3a4} .overlay .results .l{color:#ff9a9a}
+.bigstat{display:flex;gap:14px;justify-content:center;margin-top:10px}
+.bigstat div{background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px;min-width:80px}
+.bigstat b{display:block;font-size:1.5rem;font-family:'Patrick Hand',cursive;color:var(--accent)}
+.bigstat span{font-size:.75rem;color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#0f1f1d;color:var(--text);padding:10px 16px;border-radius:999px;border:1px solid var(--card-line);opacity:0;transition:all .25s ease;pointer-events:none;z-index:60;max-width:92vw;text-align:center;font-size:.95rem}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -161,7 +260,7 @@ select option{color:#111}
         <input name="email" type="email" placeholder="Email" required autocomplete="email">
         <input name="password" type="password" placeholder="Password" required autocomplete="current-password">
         <button class="primary" type="submit">Sign in</button>
-        <button type="button" class="link" id="btn-forgot">Forgot password?</button>
+        <button type="button" class="secondary" id="btn-forgot">Forgot password?</button>
       </form>
       <form id="form-up" class="aform hidden" autocomplete="on">
         <input name="name" placeholder="Your name (friends will see this)" required maxlength="20" autocomplete="nickname">
@@ -182,53 +281,54 @@ select option{color:#111}
 <section id="screen-lobby" class="screen">
   <div class="card lobby">
     <div class="row between">
-      <div><h2>Hi, <span id="lobby-name"></span></h2><div class="uname" id="lobby-uname"></div></div>
+      <div><h2>Hi, <span id="lobby-name"></span></h2><div class="uname" id="lobby-uname"></div><div class="stats" id="lobby-stats"></div></div>
       <button id="btn-signout" class="link" type="button">Sign out</button>
     </div>
 
     <h3>Your games</h3>
-    <div id="games-list" class="list"></div>
+    <div id="games-list"></div>
+    <div id="lobby-error" class="err" aria-live="polite"></div>
 
-    <h3>New game</h3>
-    <div id="new-settings"></div>
-    <p class="hint">Tap Play next to a friend to challenge them with these settings, or make a code to share with anyone.</p>
-    <div id="friends-list" class="list"></div>
-    <button id="btn-create" class="secondary wide" type="button" style="margin-top:10px">Create game &amp; get a code</button>
-
-    <h3>Friends</h3>
+    <h3>Friends <span class="sub">tap Play to challenge</span></h3>
     <div id="requests-list" class="list"></div>
-    <div class="row" style="margin-top:6px"><input id="inp-friend" placeholder="Friend’s username" autocapitalize="none" autocomplete="off"><button id="btn-add-friend" class="secondary" type="button">Add</button></div>
+    <div id="friends-list" class="list"></div>
+    <div class="row" style="margin-top:8px"><input id="inp-friend" placeholder="Add a friend by username" autocapitalize="none" autocomplete="off"><button id="btn-add-friend" class="secondary" type="button">Add</button></div>
     <div id="friend-error" class="err" aria-live="polite"></div>
 
-    <h3>Join with a code</h3>
-    <div class="row"><input id="inp-code" placeholder="Game code" maxlength="5" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase"><button id="btn-join" class="primary" type="button">Join</button></div>
-    <div id="lobby-error" class="err" aria-live="polite"></div>
-    <div class="or">or</div>
-    <button id="btn-local2" class="secondary wide" type="button">Pass &amp; play on this device</button>
+    <h3>More ways to play</h3>
+    <div class="ways">
+      <button id="btn-create" class="secondary wide" type="button">Create a game code to share</button>
+      <div class="row"><input id="inp-code" placeholder="Join with a code" maxlength="5" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase"><button id="btn-join" class="secondary" type="button">Join</button></div>
+      <button id="btn-local2" class="secondary wide" type="button">Pass &amp; play on this device</button>
+    </div>
+    <p class="hint" style="margin-top:14px">Tip: add this page to your home screen (Share → Add to Home Screen on iPhone, menu → Add to Home screen on Android) and it opens full-screen like an app.</p>
   </div>
 </section>
 
 <!-- ============ Game ============ -->
 <section id="screen-game" class="screen">
   <header class="gbar">
-    <b class="code" id="g-code">—</b>
-    <button id="btn-copy" class="link" type="button">Copy link</button>
+    <b class="code" id="g-code"></b>
+    <button id="btn-copy" class="icon" type="button" title="Copy invite link" aria-label="Copy invite link">🔗</button>
     <div class="standing"><span id="lbl-opp"></span> · <span id="lbl-me"></span></div>
+    <button id="btn-mute" class="icon" type="button" title="Sound on/off" aria-label="Sound on or off">🔊</button>
     <button id="btn-leave" class="ghost" type="button">Leave</button>
   </header>
+  <div class="banners" id="banners" aria-live="polite"></div>
   <div class="stage">
     <div class="paper-wrap">
       <div class="paper" id="paper">
         <div class="half top" id="half-top">
-          <div class="face front"><svg id="svg-top" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div class="face front"><svg id="svg-top" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"></svg></div>
           <div class="face back"></div>
           <div class="shade"></div>
         </div>
         <div class="half bottom" id="half-bot">
-          <div class="face front"><svg id="svg-bot" viewBox="0 500 600 500" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div class="face front"><svg id="svg-bot" viewBox="0 600 600 600" xmlns="http://www.w3.org/2000/svg"></svg></div>
           <div class="face back"></div>
           <div class="shade"></div>
         </div>
+        <div class="crease"></div>
       </div>
     </div>
   </div>
@@ -244,43 +344,41 @@ select option{color:#111}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
 (function () {
 'use strict';
 
 /* ============================================================
-   1) FIREBASE CONFIG — paste the config from your own Firebase
-      project here (Project settings → General → Your apps → Config).
-      Until you do, only Pass & play is available.
+   FIREBASE CONFIG lives in firebase-config.js next to this file
+   (see README). That file never changes between game updates,
+   so you can replace index.html freely. Until it exists, only
+   Pass & play is available.
    ============================================================ */
-const firebaseConfig = {
-  apiKey: "AIzaSyBy7fuarnult7bUMSEg3TgAgJuDe9V2d-g",
-  authDomain: "fold-and-press.firebaseapp.com",
-  databaseURL: "https://fold-and-press-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "fold-and-press",
-  storageBucket: "fold-and-press.firebasestorage.app",
-  messagingSenderId: "214382134849",
-  appId: "1:214382134849:web:e968c4ccf75ff5b8f1a8c0"
-};
-/* ============================================================ */
+const firebaseConfig = window.FIREBASE_CONFIG || { apiKey: "PASTE" };
 
 /* ---------- game constants (tweak freely) ---------- */
 const SHEET_W = 600, HALF_H = 600, SHEET_H = 1200;       // the page: 600 wide, two 600-tall halves (a 1:2 sheet), crease at y=600
-const FIG_SCALE = 0.6;                                    // stickman size relative to the drawing (head radius ends up ≈ 5 units)
-const BLOB_R = { head: 5, small: 8, medium: 12, large: 18 };   // ink dot radius per setting; "head" matches a stickman's head
+const SIZES = { small: 0.45, normal: 0.6, large: 0.85 };  // stickman scale per setting (drawn at 66 units tall before scaling)
+const HEAD_R = 8.5;                                       // head radius before scaling
+const BLOB_MULT = { head: 1, small: 1.6, medium: 2.4, large: 3.6 };   // ink dot radius as a multiple of the head radius
 const WOBBLE = { steady: 0, slight: 6, wobbly: 14 };      // random slip when the page is pressed (not used by the press meter)
-// Press meter levels: `clean` is the half-width of the centre zone (fraction of the bar), `sweepMs` one sweep across,
-// `max` the slip (in page units) when you stop at the very edge. Inside the zone the page lies flat; outside it slips in proportion.
-const METER_LEVELS = {
+const METER_LEVELS = {                                     // press meter: `clean` half-width of the centre zone, `sweepMs` one sweep, `max` slip at the bar's edge
   'meter-relaxed': { clean: 0.09, sweepMs: 1200, max: 24 },
   'meter':         { clean: 0.045, sweepMs: 1000, max: 30 },
   'meter-tight':   { clean: 0.025, sweepMs: 850, max: 36 },
   'meter-brutal':  { clean: 0.012, sweepMs: 700, max: 42 }
 };
-const HIT = { halfW: 14 * FIG_SCALE, up: 36 * FIG_SCALE, down: 30 * FIG_SCALE };   // stickman hit box around its anchor point
-const PAD = { x: 30, top: 30, bottom: 26 };               // how close to the edges / crease a stickman may stand
+const ACC_FALL = 80;                                      // accuracy: 100% inside the head, falling to 0% this many units from it
 const FOLD_MS = 2600;                                     // must match --fold-ms in the CSS
-const DEFAULTS = { figures: 5, blob: 'head', visible: true, wobble: 'meter', fade: 0 };   // fade: 0 = ink stays, 2 = last 2 shots show, 1 = last shot only
+// fade: 0 all, 3/2/1 last N shots, -1 none. dead: 'x' stays crossed out, 'gone' disappears. moves/hides: per player per game. hsBonus: a 100% shot earns a free hide.
+const DEFAULTS = { figures: 5, size: 'normal', blob: 'head', visible: true, wobble: 'meter', fade: 0, crease: false, dead: 'x', moves: 1, hides: 1, hsBonus: true };
+const PRESETS = {
+  easy:   { figures: 5, size: 'large', blob: 'large', visible: true, wobble: 'steady', fade: 0, crease: true, dead: 'x', moves: 2, hides: 2, hsBonus: true },
+  normal: { figures: 5, size: 'normal', blob: 'small', visible: true, wobble: 'meter-relaxed', fade: 0, crease: false, dead: 'x', moves: 1, hides: 1, hsBonus: true },
+  hard:   { figures: 5, size: 'normal', blob: 'head', visible: true, wobble: 'meter', fade: 3, crease: false, dead: 'x', moves: 1, hides: 1, hsBonus: true },
+  brutal: { figures: 5, size: 'small', blob: 'head', visible: true, wobble: 'meter-brutal', fade: -1, crease: false, dead: 'gone', moves: 0, hides: 0, hsBonus: true }
+};
 
 /* ---------- small helpers ---------- */
 const $ = (s, el) => (el || document).querySelector(s);
@@ -292,24 +390,68 @@ function genCode() { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c = ''; f
 let toastT = null;
 function toast(msg, ms) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 2800); }
 function show(name) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name)); if (name === 'game') requestAnimationFrame(sizePaper); }
-function overlay(html, btns) {
-  const o = $('#overlay'); $('#ov-content').innerHTML = html;
+function overlay(html, btns, opts) {
+  const o = $('#overlay'); $('#ov-content').innerHTML = html; o.querySelector('.box').classList.toggle('wide', !!(opts && opts.wide));
   const b = $('#ov-btns'); b.innerHTML = '';
   (btns || []).forEach(x => { const btn = document.createElement('button'); btn.type = 'button'; btn.className = x.cls || 'primary'; btn.innerHTML = x.label; btn.onclick = x.act; b.appendChild(btn); });
   o.classList.remove('hidden');
 }
-function hideOverlay() { $('#overlay').classList.add('hidden'); }
+function hideOverlay() { $('#overlay').classList.add('hidden'); fireworks.stop(); }
+
+/* ---------- fireworks: drawn on a canvas behind the result card ---------- */
+const fireworks = (() => {
+  const COLORS = ['#f5c242', '#ff6b6b', '#8fe3a4', '#ffffff', '#7cc4ff', '#ff9de2', '#ffd166'];
+  let cv = null, cx = null, raf = 0, parts = [], rockets = [], endAt = 0, nextLaunch = 0, W = 0, H = 0, dpr = 1;
+  function ensure() {
+    const o = $('#overlay');
+    if (!cv) { cv = document.createElement('canvas'); cv.className = 'fireworks'; o.prepend(cv); cx = cv.getContext('2d'); }
+    dpr = Math.min(2, window.devicePixelRatio || 1); W = o.clientWidth || window.innerWidth; H = o.clientHeight || window.innerHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function burst(x, y) {
+    const n = 55 + Math.floor(Math.random() * 35), col = COLORS[Math.floor(Math.random() * COLORS.length)], col2 = COLORS[Math.floor(Math.random() * COLORS.length)];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 1.4 + Math.random() * 3.6;
+      parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, decay: 0.012 + Math.random() * 0.012, r: 1.4 + Math.random() * 1.6, c: Math.random() < 0.7 ? col : col2 });
+    }
+    sfx.pop();
+  }
+  function frame(now) {
+    cx.clearRect(0, 0, W, H);
+    if (now < endAt && now >= nextLaunch) { rockets.push({ x: W * (0.15 + Math.random() * 0.7), y: H + 6, vy: -(7 + Math.random() * 3.5), ty: H * (0.12 + Math.random() * 0.4) }); nextLaunch = now + 260 + Math.random() * 320; }
+    rockets = rockets.filter(r => { r.y += r.vy; r.vy += 0.06; cx.fillStyle = '#fff4c2'; cx.beginPath(); cx.arc(r.x, r.y, 2, 0, Math.PI * 2); cx.fill(); if (r.y <= r.ty || r.vy >= 0) { burst(r.x, r.y); return false; } return true; });
+    cx.globalCompositeOperation = 'lighter';
+    parts = parts.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.vx *= 0.985; p.vy = p.vy * 0.985 + 0.045; p.life -= p.decay;
+      if (p.life <= 0) return false;
+      cx.globalAlpha = Math.max(0, p.life); cx.fillStyle = p.c; cx.beginPath(); cx.arc(p.x, p.y, p.r * (0.6 + p.life * 0.6), 0, Math.PI * 2); cx.fill();
+      return true;
+    });
+    cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over';
+    if (now < endAt || parts.length || rockets.length) raf = requestAnimationFrame(frame); else stop();
+  }
+  function start(ms) {
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      ensure(); parts = []; rockets = []; endAt = performance.now() + (ms || 4500); nextLaunch = 0;
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+    } catch (e) { /* canvas unavailable */ }
+  }
+  function stop() { cancelAnimationFrame(raf); raf = 0; parts = []; rockets = []; if (cx) cx.clearRect(0, 0, W, H); if (cv) cv.remove(); cv = cx = null; }
+  return { start, stop };
+})();
+const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* not supported */ } };
 function friendlyAuth(err) {
   const c = (err && err.code) || '';
   const m = {
-    'auth/email-already-in-use': 'That email already has an account — try signing in.',
+    'auth/email-already-in-use': 'That email already has an account. Try signing in.',
     'auth/invalid-email': 'That email address doesn’t look right.',
     'auth/weak-password': 'Password needs at least 6 characters.',
     'auth/user-not-found': 'No account with that email.',
     'auth/wrong-password': 'Wrong password.',
     'auth/invalid-credential': 'Wrong email or password.',
-    'auth/too-many-requests': 'Too many attempts — wait a minute and try again.',
-    'auth/network-request-failed': 'Network problem — check your connection.',
+    'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',
+    'auth/network-request-failed': 'Network problem. Check your connection.',
     'auth/unauthorized-domain': 'This site’s domain isn’t authorised yet: add it under Firebase → Authentication → Settings → Authorized domains.',
     'auth/operation-not-allowed': 'Email/password sign-in isn’t enabled yet (Firebase → Authentication → Sign-in method).'
   };
@@ -323,59 +465,172 @@ function friendlyDb(err) {
 const USERNAME_RE = /^[a-z0-9_]{3,15}$/;
 const cleanUsername = s => String(s || '').trim().toLowerCase().replace(/^@/, '');
 
-/* ---------- settings widget (shared by lobby and pass & play) ---------- */
-function settingsHTML(p) {
-  const sel = (id, opts, cur) => `<select id="${p}-${id}">${opts.map(([v, l]) => `<option value="${v}"${String(v) === String(cur) ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
-  return `<div class="grid2">` +
-    `<label>Stickmen each${sel('fig', [[3, '3'], [5, '5'], [7, '7']], DEFAULTS.figures)}</label>` +
-    `<label>Ink dot${sel('blob', [['head', 'Head-sized (hard)'], ['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']], DEFAULTS.blob)}</label>` +
-    `<label>Stickmen are${sel('vis', [['1', 'Visible (classic)'], ['0', 'Hidden (battleship)']], DEFAULTS.visible ? '1' : '0')}</label>` +
-    `<label>Fold${sel('wob', [['meter-relaxed', 'Press meter — relaxed'], ['meter', 'Press meter — normal'], ['meter-tight', 'Press meter — tight'], ['meter-brutal', 'Press meter — brutal'], ['steady', 'Steady (no meter)'], ['slight', 'Slips a little (random)'], ['wobbly', 'Wobbly (random)']], DEFAULTS.wobble)}</label>` +
-    `<label>Ink${sel('fade', [['0', 'Stays on the page'], ['2', 'Only last 2 shots show'], ['1', 'Only last shot shows']], String(DEFAULTS.fade))}</label></div>`;
+/* ---------- sounds: synthesised, no audio files ---------- */
+const sfx = (() => {
+  let ac = null, muted = false;
+  try { muted = localStorage.getItem('fp.muted') === '1'; } catch (e) { /* ignore */ }
+  const get = () => { if (!ac) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ac = new AC(); } if (ac.state === 'suspended') ac.resume(); return ac; };
+  function noise(dur, f0, f1, gain, type) {
+    const c = get(); if (!c) return;
+    const n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource(); src.buffer = buf;
+    const flt = c.createBiquadFilter(); flt.type = type || 'bandpass'; flt.Q.value = 0.9;
+    flt.frequency.setValueAtTime(f0, c.currentTime); flt.frequency.exponentialRampToValueAtTime(f1, c.currentTime + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.exponentialRampToValueAtTime(gain, c.currentTime + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    src.connect(flt); flt.connect(g); g.connect(c.destination); src.start(); src.stop(c.currentTime + dur + 0.05);
+  }
+  function tone(f0, f1, dur, gain, type) {
+    const c = get(); if (!c) return;
+    const o = c.createOscillator(); o.type = type || 'sine'; o.frequency.setValueAtTime(f0, c.currentTime); o.frequency.exponentialRampToValueAtTime(f1, c.currentTime + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(gain, c.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + dur + 0.05);
+  }
+  const safe = fn => { if (muted) return; try { fn(); } catch (e) { /* audio unavailable */ } };
+  return {
+    unlock() { try { get(); } catch (e) { /* ignore */ } },
+    fold() { safe(() => noise(0.55, 400, 2400, 0.35)); },                        // paper swishing over
+    press() { safe(() => { tone(110, 45, 0.22, 0.5, 'sine'); noise(0.1, 300, 120, 0.3, 'lowpass'); }); },   // the thump of a palm pressing
+    unfold() { safe(() => noise(0.5, 2200, 500, 0.3)); },
+    hit() { safe(() => { noise(0.14, 1400, 180, 0.7, 'lowpass'); tone(380, 90, 0.3, 0.6, 'triangle'); }); },   // splat + thud
+    miss() { safe(() => tone(700, 500, 0.07, 0.12, 'sine')); },
+    win() { safe(() => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, f, 0.18, 0.25, 'triangle'), i * 120))); },
+    pop() { safe(() => { noise(0.16, 900, 160, 0.28, 'bandpass'); tone(220, 60, 0.12, 0.15, 'sine'); }); },   // a firework bursting
+    coin() { safe(() => { tone(1800, 1750, 0.9, 0.12, 'sine'); tone(2700, 2600, 0.6, 0.06, 'sine'); }); },        // a coin ringing in the air
+    clink() { safe(() => { tone(2400, 1200, 0.08, 0.25, 'triangle'); setTimeout(() => tone(2000, 900, 0.06, 0.12, 'triangle'), 90); }); },
+    ghost() { safe(() => { tone(900, 300, 0.5, 0.18, 'sine'); tone(1350, 450, 0.5, 0.08, 'sine'); }); },           // a stickman fading away
+    slide() { safe(() => noise(0.28, 1500, 400, 0.22, 'bandpass')); },                                              // pencil sliding across paper
+    tick() { safe(() => tone(1200, 1200, 0.04, 0.12, 'square')); },
+    headshot() { safe(() => { noise(0.14, 1400, 180, 0.7, 'lowpass'); tone(380, 90, 0.3, 0.6, 'triangle'); setTimeout(() => tone(880, 1760, 0.22, 0.22, 'triangle'), 60); }); },
+    toggle() { muted = !muted; try { localStorage.setItem('fp.muted', muted ? '1' : '0'); } catch (e) { /* ignore */ } return muted; },
+    get muted() { return muted; }
+  };
+})();
+document.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
+const muteBtn = $('#btn-mute');
+const renderMute = () => { muteBtn.textContent = sfx.muted ? '🔇' : '🔊'; };
+muteBtn.addEventListener('click', () => { sfx.toggle(); renderMute(); toast(sfx.muted ? 'Sound off' : 'Sound on'); });
+renderMute();
+
+/* ---------- game setup sheet: presets + two groups of settings, shared by challenge, code and pass & play ---------- */
+const FIELDS = [
+  ['fig', 'figures', 'Stickmen each', [[3, '3'], [5, '5'], [7, '7']]],
+  ['size', 'size', 'Stickman size', [['small', 'Small (hard)'], ['normal', 'Normal'], ['large', 'Large (easy)']]],
+  ['vis', 'visible', 'Stickmen are', [['1', 'Visible (classic)'], ['0', 'Hidden (battleship)']]],
+  ['dead', 'dead', 'When hit, stickmen', [['x', 'Stay crossed out'], ['gone', 'Disappear']]],
+  ['blob', 'blob', 'Ink dot', [['head', 'Head-sized (hard)'], ['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']]],
+  ['wob', 'wobble', 'Fold', [['meter-relaxed', 'Press meter, relaxed'], ['meter', 'Press meter, normal'], ['meter-tight', 'Press meter, tight'], ['meter-brutal', 'Press meter, brutal'], ['steady', 'Steady (no meter)'], ['slight', 'Slips a little (random)'], ['wobbly', 'Wobbly (random)']]],
+  ['fade', 'fade', 'Ink on the page', [['0', 'All shots stay'], ['3', 'Only last 3 shots'], ['2', 'Only last 2 shots'], ['1', 'Only last shot'], ['-1', 'None (vanishes after landing)']]],
+  ['crease', 'crease', 'Fold line', [['0', 'Hidden (hard)'], ['1', 'Shown (easy)']]],
+  ['moves', 'moves', 'Relocates per player', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']]],
+  ['hides', 'hides', 'Invisibility per player', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']]],
+  ['hsb', 'hsBonus', 'Headshot bonus', [['1', 'Free invisibility'], ['0', 'Off']]]
+];
+const toVal = (key, v) => typeof v === 'boolean' ? (v ? '1' : '0') : String(v);
+function settingsHTML(p, cur) {
+  cur = Object.assign({}, DEFAULTS, cur || {});
+  const sel = ([id, key, label, opts]) => `<label>${label}<select id="${p}-${id}" data-key="${key}">${opts.map(([v, l]) => `<option value="${v}"${String(v) === toVal(key, cur[key]) ? ' selected' : ''}>${l}</option>`).join('')}</select></label>`;
+  return `<div class="presets" id="${p}-presets">${['easy', 'normal', 'hard', 'brutal'].map(k => `<button type="button" class="preset" data-preset="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>` +
+    `<div class="setup"><h4>Board</h4><div class="grid2">${FIELDS.slice(0, 4).map(sel).join('')}</div><h4>Difficulty</h4><div class="grid2">${FIELDS.slice(4, 8).map(sel).join('')}</div>` +
+    `<h4>Powers <span class="hint-inline">use one instead of shooting</span></h4><div class="grid2">${FIELDS.slice(8).map(sel).join('')}</div><p class="hint" style="margin:6px 0 0">Relocate: drag one of your stickmen somewhere new. Invisibility: hide one from your opponent for their next shot (only when stickmen are visible).</p></div>`;
 }
-function readSettings(p) { return { figures: +$(`#${p}-fig`).value, blob: $(`#${p}-blob`).value, visible: $(`#${p}-vis`).value === '1', wobble: $(`#${p}-wob`).value, fade: +$(`#${p}-fade`).value || 0 }; }
-const isMeter = () => String(settings().wobble).indexOf('meter') === 0;
-const meterLevel = () => METER_LEVELS[settings().wobble] || METER_LEVELS.meter;
+function readSettings(p) {
+  const v = id => $(`#${p}-${id}`).value;
+  return { figures: +v('fig'), size: v('size'), blob: v('blob'), visible: v('vis') === '1', wobble: v('wob'), fade: +v('fade') || 0, crease: v('crease') === '1', dead: v('dead'), moves: +v('moves') || 0, hides: +v('hides') || 0, hsBonus: v('hsb') === '1' };
+}
+function markPreset(p) {
+  const cur = readSettings(p);
+  const match = Object.keys(PRESETS).find(k => Object.keys(PRESETS[k]).every(key => String(PRESETS[k][key]) === String(cur[key])));
+  document.querySelectorAll(`#${p}-presets .preset`).forEach(b => b.classList.toggle('active', b.dataset.preset === match));
+}
+function wireSettings(p) {
+  document.querySelectorAll(`#${p}-presets .preset`).forEach(b => b.addEventListener('click', () => {
+    const pre = PRESETS[b.dataset.preset];
+    FIELDS.forEach(([id, key]) => { $(`#${p}-${id}`).value = toVal(key, pre[key]); });
+    markPreset(p);
+  }));
+  document.querySelectorAll(`#${p}-${'presets'} ~ .setup select`).forEach(el => el.addEventListener('change', () => markPreset(p)));
+  markPreset(p);
+}
+function savedSettings() { try { return JSON.parse(localStorage.getItem('fp.settings') || 'null') || PRESETS.normal; } catch (e) { return PRESETS.normal; } }
+function rememberSettings(st) { try { localStorage.setItem('fp.settings', JSON.stringify(st)); } catch (e) { /* ignore */ } }
+// Opens the sheet; `onStart` receives the chosen settings.
+function openSetup(title, sub, onStart) {
+  overlay(`<h2>${title}</h2>${sub ? `<p class="setup-sub">${sub}</p>` : ''}${settingsHTML('set', savedSettings())}`,
+    [{ label: 'Start game', act: () => { const st = readSettings('set'); rememberSettings(st); hideOverlay(); onStart(st); } }, { label: 'Cancel', cls: 'secondary', act: hideOverlay }], { wide: true });
+  wireSettings('set');
+}
 
 /* ---------- geometry ---------- */
-function circleHitsFig(cx, cy, r, fx, fy) {
-  const nx = clamp(cx, fx - HIT.halfW, fx + HIT.halfW), ny = clamp(cy, fy - HIT.up, fy + HIT.down);
+const scaleOf = st => SIZES[st.size] || SIZES.normal;
+const blobROf = st => HEAD_R * scaleOf(st) * (BLOB_MULT[st.blob] || 1);
+const hitBox = s => ({ halfW: 14 * s, up: 36 * s, down: 30 * s });                // stickman hit box around its anchor point
+const padOf = s => ({ x: 30, top: Math.max(30, 36 * s + 6), bottom: Math.max(22, 30 * s + 6) });   // how close to the edges / crease a stickman may stand
+function circleHitsFig(cx, cy, r, fx, fy, s) {
+  const hb = hitBox(s), nx = clamp(cx, fx - hb.halfW, fx + hb.halfW), ny = clamp(cy, fy - hb.up, fy + hb.down);
   const dx = cx - nx, dy = cy - ny;
   return dx * dx + dy * dy <= r * r;
 }
-// A dot at (x, y) transfers to the mirror position across the crease, (x, 1000 − y), plus any slip from pressing.
+// A dot at (x, y) transfers to the mirror position across the crease, (x, 1200 − y), plus any slip from pressing.
 const shotTarget = s => [s.x + (s.dx || 0), SHEET_H - s.y + (s.dy || 0)];
-function computeHits(shot, figures, r) {
-  const t = shotTarget(shot);
-  return (figures || []).filter(f => f && f.alive !== false && circleHitsFig(t[0], t[1], r, f.x, f.y)).map(f => ({ id: f.id, x: f.x, y: f.y }));
+function computeHits(shot, figures, st) {
+  const t = shotTarget(shot), r = blobROf(st), s = scaleOf(st);
+  return (figures || []).filter(f => f && f.alive !== false && circleHitsFig(t[0], t[1], r, f.x, f.y, s)).map(f => ({ id: f.id, x: f.x, y: f.y }));
+}
+// Accuracy of one shot, 0–100: 100 inside the nearest standing stickman's head, falling off with distance from it.
+function shotAccuracy(shot, figures, st) {
+  const t = shotTarget(shot), s = scaleOf(st), headR = HEAD_R * s;
+  let best = Infinity;
+  (figures || []).forEach(f => { if (!f || f.alive === false) return; const d = Math.hypot(t[0] - f.x, t[1] - (f.y - 27 * s)); if (d < best) best = d; });
+  if (best === Infinity) return 0;
+  return Math.round(clamp(1 - Math.max(0, best - headR) / ACC_FALL, 0, 1) * 100);
 }
 function rollSlip(wobble) {
   const w = WOBBLE[wobble] || 0; if (!w) return [0, 0];
   const ang = Math.random() * Math.PI * 2, dist = w * Math.sqrt(Math.random());
   return [Math.round(Math.cos(ang) * dist), Math.round(Math.sin(ang) * dist)];
 }
+// Every game and rematch starts with a coin toss: heads is the host, tails the other player.
+function tossCoin(g) {
+  const ps = Object.keys(g.players || {}), heads = g.host, tails = ps.find(u => u !== heads) || heads;
+  const side = Math.random() < 0.5 ? 'heads' : 'tails';
+  return { side, heads, tails, first: side === 'heads' ? heads : tails, n: (g.coin && g.coin.n || 0) + 1 };
+}
+// Everything a resolver (the shooter in classic mode, the defender in hidden mode) writes once hits are known.
+function applyHitsUpdates(upd, code, victimUid, figPath, figs, hits, shooterUid) {
+  hits.forEach(h => { const i = figs.findIndex(f => f && f.id === h.id); if (i >= 0) upd[`${figPath}/figures/${i}/alive`] = false; });
+  const aliveAfter = figs.filter(f => f && f.alive !== false && !hits.some(h => h.id === f.id)).length;
+  upd[`games/${code}/players/${victimUid}/alive`] = aliveAfter;
+  if (aliveAfter === 0) { upd[`games/${code}/status`] = 'finished'; upd[`games/${code}/winner`] = shooterUid; upd[`games/${code}/nextStarter`] = victimUid; upd[`games/${code}/turn`] = null; }
+  else upd[`games/${code}/turn`] = victimUid;
+}
 
 /* ---------- SVG drawing ---------- */
-// Plain paper on purpose: ruled lines or a crease mark would let you count your way to a perfect mirror.
-function paperBG(k, y0) {
+// Plain paper on purpose: ruled lines would let you count your way to a perfect mirror. The fold line is a setting.
+function paperBG(y0) {
   return `<rect x="0" y="${y0 - 2}" width="${SHEET_W}" height="${HALF_H + 4}" fill="#fbf8ec"/>` +
     `<line x1="46" y1="${y0 - 2}" x2="46" y2="${y0 + HALF_H + 2}" stroke="#e9a4a4" stroke-width="1.2"/>`;
 }
-function figSVG(vx, vy, o) {
+function figSVG(vx, vy, s, o) {
   const rnd = mulberry32(o.seed);
   const a1 = Math.round(-20 + rnd() * 22), a2 = Math.round(-20 + rnd() * 22), tilt = (rnd() * 6 - 3).toFixed(1);
   const stroke = o.dead ? '#8e8e8e' : '#2d2d2d';
   const cls = ['fig', o.cls || '', o.dead ? 'dead' : '', o.fresh ? 'fresh' : ''].join(' ').trim();
-  // The drawing is scaled down; the invisible grab rectangle stays finger-sized so placing them is still easy.
-  return `<g class="${cls}" data-id="${esc(o.id)}" data-tilt="${tilt}" transform="translate(${vx.toFixed(1)},${vy.toFixed(1)}) rotate(${tilt})">` +
-    `<rect x="-24" y="-30" width="48" height="60" fill="transparent"/>` +
-    `<g transform="scale(${FIG_SCALE})">` +
-    `<g fill="none" stroke="${stroke}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">` +
-    `<circle cx="0" cy="-27" r="8.5" fill="#fbf8ec"/>` +
+  // The drawing is scaled; the invisible grab rectangle stays finger-sized so placing them is easy at any size.
+  // A relocated stickman slides in from where it stood (CSS transform on an inner group, so it composes with the SVG transform).
+  const slide = o.slide ? `<g class="slide" style="--fdx:${o.slide[0].toFixed(1)}px;--fdy:${o.slide[1].toFixed(1)}px">` : '<g>';
+  return `<g class="${cls}" data-id="${esc(o.id)}" data-tilt="${tilt}" transform="translate(${vx.toFixed(1)},${vy.toFixed(1)}) rotate(${tilt})">` + slide +
+    (o.selected ? `<circle class="selring" cx="0" cy="${(-4 * s).toFixed(1)}" r="${(40 * s + 10).toFixed(1)}" fill="rgba(196,30,30,.08)" stroke="#c41e1e" stroke-width="2" stroke-dasharray="6 5"/>` : '') +
+    (o.ghost ? `<text class="ghostlbl" y="${(-50 * s).toFixed(1)}" text-anchor="middle" font-size="${(11).toFixed(0)}" fill="#6a5bb5" font-family="Nunito, sans-serif" font-weight="700">invisible</text>` : '') +
+    `<rect x="-26" y="-34" width="52" height="66" fill="transparent"/>` +
+    `<g transform="scale(${s})">` +
+    `<g fill="none" stroke="${stroke}" stroke-width="${(3.4 / Math.sqrt(s / 0.6)).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round">` +
+    `<circle cx="0" cy="-27" r="${HEAD_R}" fill="#fbf8ec"/>` +
     `<path d="M0,-18.5 V8 M0,-11 L-15,${a1} M0,-11 L15,${a2} M0,8 L-11,30 M0,8 L11,30"/></g>` +
     (o.dead ? '' : `<g fill="#2d2d2d"><circle cx="-3" cy="-28.5" r="1.3"/><circle cx="3" cy="-28.5" r="1.3"/></g><path d="M-3.5,-24 Q0,-21.5 3.5,-24" fill="none" stroke="#2d2d2d" stroke-width="1.5" stroke-linecap="round"/>`) +
     (o.dead ? `<g class="xmark" fill="none" stroke="#c41e1e" stroke-width="5" stroke-linecap="round"><line x1="-19" y1="-40" x2="19" y2="32"/><line x1="19" y1="-40" x2="-19" y2="32"/></g>` : '') +
-    `</g></g>`;
+    (o.cls && o.cls.indexOf('headshot') >= 0 ? `<g class="hsring"><circle cx="0" cy="-27" r="${HEAD_R}" fill="none" stroke="#c41e1e" stroke-width="3"/><circle cx="0" cy="-27" r="${HEAD_R}" fill="none" stroke="#c41e1e" stroke-width="1.5"/></g>` : '') +
+    `</g></g></g>`;
 }
 function blobPath(cx, cy, r, rnd) {
   const n = 11, pts = [];
@@ -404,12 +659,18 @@ function blobSVG(vx, vy, r, seed, o) {
 const ctx = { mode: null, uid: null, name: null, username: null, authUid: null, authName: null };
 let store = null, game = null, secret = null;
 let placement = null, aim = null, drag = null;
-const knownShots = new Set(), revealed = new Set(), resolving = new Set(), freshIds = new Set();
-let foldQueue = [], pendingReveal = null, animating = false, firstLoad = true, startRequested = false, holdFolds = false;
+const knownShots = new Set(), revealed = new Set(), resolving = new Set(), freshIds = new Set(), recorded = new Set(), vanishing = new Set();
+let headshotId = null;
+// Powers: what the player is doing instead of aiming, and the animation bookkeeping for things that move, hide or fade.
+let pickMode = null, selectedFig = null, pendingMove = null;
+const seenEvents = new Set(), seenMoves = new Set(), sliding = new Map(), inkFading = new Map(), figFading = new Map();
+let lastInk = null, hiddenLast = null;
+let foldQueue = [], pendingReveal = null, animating = false, firstLoad = true, startRequested = false, holdFolds = false, liveShot = null;
 let meter = null;   // { x, y, start, raf } while the press meter is sweeping
 const paperEl = $('#paper'), halfTop = $('#half-top'), halfBot = $('#half-bot'), svgTop = $('#svg-top'), svgBot = $('#svg-bot');
 
 const players = () => (game && game.players) || {};
+const turnUid = () => (game && (game.turn || (game.coin && game.status === 'playing' ? game.coin.first : null))) || null;
 const me = () => players()[ctx.uid] || null;
 const oppUid = () => Object.keys(players()).find(u => u !== ctx.uid) || null;
 const opp = () => { const u = oppUid(); return u ? players()[u] : null; };
@@ -418,26 +679,42 @@ const isFlip = () => !!(me() && me().side === 'top');
 // Logical <-> visual: the viewer's own half is always drawn at the bottom. The mapping is its own inverse.
 const V = (x, y) => [x, isFlip() ? SHEET_H - y : y];
 const settings = () => Object.assign({}, DEFAULTS, (game && game.settings) || {});
-const blobR = () => BLOB_R[settings().blob] || BLOB_R.head;
+const figScale = () => scaleOf(settings());
+const blobR = () => blobROf(settings());
 const visibleMode = () => settings().visible !== false;
+const isMeter = () => String(settings().wobble).indexOf('meter') === 0;
+const meterLevel = () => METER_LEVELS[settings().wobble] || METER_LEVELS.meter;
 // Where a player's stickmen live: in the open game (classic) or in a private branch only they can read (hidden).
 function figData(uid) { if (!game || !uid) return null; if (visibleMode()) return (game.figures && game.figures[uid]) || null; return uid === ctx.uid ? secret : null; }
 const figsReady = uid => { const d = figData(uid); return !!(d && d.round === game.round && Array.isArray(d.figures)); };
 const editing = () => { const m = me(); return !!(game && (game.status === 'lobby' || game.status === 'placing') && m && !m.ready); };
 const myPending = () => Object.values((game && game.shots) || {}).some(s => s.by === ctx.uid && !s.resolved);
 const settled = () => !animating && !pendingReveal && foldQueue.length === 0;
+const otherOf = uid => Object.keys(players()).find(u => u !== uid) || null;
+const movesAllowed = () => +settings().moves || 0;
+const hidesAllowed = () => visibleMode() ? (+settings().hides || 0) : 0;
+const bonusOn = () => visibleMode() && settings().hsBonus !== false;
+const movesLeft = uid => Math.max(0, movesAllowed() - ((players()[uid] || {}).movesUsed || 0));
+const hidesLeft = uid => Math.max(0, hidesAllowed() - ((players()[uid] || {}).hidesUsed || 0));
+const hasBonus = uid => !!((players()[uid] || {}).bonusHide) && bonusOn();
+const countShotsBy = (uid, onlyRevealed) => Object.keys((game && game.shots) || {}).filter(id => game.shots[id].by === uid && game.shots[id].resolved && (!onlyRevealed || revealed.has(id))).length;
+// A hidden stickman stays hidden until its owner's opponent has landed one more shot than when it was hidden.
+const isHiddenFig = (f, ownerUid) => !!(f && f.hide && countShotsBy(otherOf(ownerUid), true) <= f.hide.n);
+const shotsBy = (uid, onlyRevealed) => Object.keys((game && game.shots) || {}).sort().filter(id => !onlyRevealed || revealed.has(id)).map(id => game.shots[id]).filter(s => s.by === uid && s.resolved);
+// On screen, accuracy only counts shots whose fold has already played; otherwise the number would give the result away mid-fold.
+function accuracyOf(uid, all) { const ss = shotsBy(uid, !all).filter(s => typeof s.acc === 'number'); if (!ss.length) return null; return Math.round(ss.reduce((a, s) => a + s.acc, 0) / ss.length); }
 
 function myFigs() {
   if (editing()) { if (!placement) placement = defaultPlacement(); return placement; }
   return figsReady(ctx.uid) ? figData(ctx.uid).figures : [];
 }
 function defaultPlacement() {
-  const n = Math.max(1, +settings().figures || 5);
+  const n = Math.max(1, +settings().figures || 5), pad = padOf(figScale());
   const rows = n > 5 ? 2 : 1, perRow = Math.ceil(n / rows), out = [];
   for (let i = 0; i < n; i++) {
     const row = Math.floor(i / perRow), col = i % perRow;
     const cnt = row === rows - 1 ? n - perRow * (rows - 1) : perRow;
-    const vx = SHEET_W / 2 + (col - (cnt - 1) / 2) * Math.min(90, (SHEET_W - 2 * PAD.x) / cnt);
+    const vx = SHEET_W / 2 + (col - (cnt - 1) / 2) * Math.min(90, (SHEET_W - 2 * pad.x) / cnt);
     const vy = rows === 1 ? HALF_H * 1.6 : (row === 0 ? HALF_H * 1.42 : HALF_H * 1.76);
     const p = V(vx, vy);
     out.push({ id: 'f' + (i + 1), x: Math.round(p[0]), y: Math.round(p[1]), alive: true });
@@ -445,11 +722,11 @@ function defaultPlacement() {
   return out;
 }
 function shufflePlacement() {
-  const n = (placement || []).length || 5, pts = [];
+  const n = (placement || []).length || 5, pts = [], pad = padOf(figScale());
   for (let i = 0; i < n; i++) {
     let best = null;
     for (let t = 0; t < 50; t++) {
-      const vx = PAD.x + Math.random() * (SHEET_W - 2 * PAD.x), vy = HALF_H + PAD.top + Math.random() * (HALF_H - PAD.top - PAD.bottom);
+      const vx = pad.x + Math.random() * (SHEET_W - 2 * pad.x), vy = HALF_H + pad.top + Math.random() * (HALF_H - pad.top - pad.bottom);
       const d = Math.min(Infinity, ...pts.map(o => Math.hypot(o.vx - vx, o.vy - vy)));
       if (!best || d > best.d) best = { vx, vy, d };
       if (d > 60) break;
@@ -458,20 +735,12 @@ function shufflePlacement() {
   }
   placement = pts.map((o, i) => { const p = V(o.vx, o.vy); return { id: 'f' + (i + 1), x: Math.round(p[0]), y: Math.round(p[1]), alive: true }; });
 }
-// Shared by both stores: given hits against `figs` under `figPath`, the writes that record them and pass the turn.
-function applyHitsUpdates(upd, code, victimUid, figPath, figs, hits, shooterUid) {
-  hits.forEach(h => { const i = figs.findIndex(f => f && f.id === h.id); if (i >= 0) upd[`${figPath}/figures/${i}/alive`] = false; });
-  const aliveAfter = figs.filter(f => f && f.alive !== false && !hits.some(h => h.id === f.id)).length;
-  upd[`games/${code}/players/${victimUid}/alive`] = aliveAfter;
-  if (aliveAfter === 0) { upd[`games/${code}/status`] = 'finished'; upd[`games/${code}/winner`] = shooterUid; upd[`games/${code}/nextStarter`] = victimUid; upd[`games/${code}/turn`] = null; }
-  else upd[`games/${code}/turn`] = victimUid;
-}
 
 /* ---------- online store (Firebase) ---------- */
 let auth = null, db = null, presenceRef = null;
+const TS = () => firebase.database.ServerValue.TIMESTAMP;
 function makeOnlineStore() {
   let code = null, gref = null, sref = null, gcb = null, scb = null;
-  const TS = () => firebase.database.ServerValue.TIMESTAMP;
   const figPath = uid => visibleMode() ? `games/${code}/figures/${uid}` : `secrets/${code}/${uid}`;
   const newGame = (gameSettings, status, extraPlayers) => ({
     code, host: ctx.uid, status, round: 1, settings: gameSettings, createdAt: TS(), turn: null, winner: null,
@@ -519,33 +788,57 @@ function makeOnlineStore() {
         [`games/${code}/players/${ctx.uid}/alive`]: figs.length
       });
     },
-    async start() { await gref.update({ status: 'playing', turn: game.nextStarter || game.host }); },
+    async start() { await gref.update({ status: 'playing', turn: null, coin: tossCoin(game) }); },
     async fire(x, y, slip) {
-      const id = gref.child('shots').push().key;
+      const id = gref.child('shots').push().key, st = settings();
       const shot = { by: ctx.uid, x, y, dx: slip[0], dy: slip[1], round: game.round, ts: TS(), resolved: false }, upd = {};
       if (visibleMode()) {
-        // Classic mode: everyone can see the stickmen, so the shooter settles the hit immediately — no need for the other player to be online.
+        // Classic mode: everyone can see the stickmen, so the shooter settles the hit immediately, no need for the other player to be online.
         const o = oppUid(), figs = figsReady(o) ? figData(o).figures : [];
-        const hits = computeHits(shot, figs, blobR());
-        shot.resolved = true; shot.hits = hits;
+        const hits = computeHits(shot, figs, st);
+        shot.resolved = true; shot.hits = hits; shot.acc = shotAccuracy(shot, figs, st);
         applyHitsUpdates(upd, code, o, figPath(o), figs, hits, ctx.uid);
+        if (hits.length && shot.acc === 100 && bonusOn()) upd[`games/${code}/players/${ctx.uid}/bonusHide`] = true;   // headshot: a free hide
       }
       upd[`games/${code}/shots/${id}`] = shot;
       await db.ref().update(upd);
     },
+    // Powers. Relocate and (paid) hide both end the turn; a bonus hide is free.
+    async move(figId, x, y) {
+      const d = figData(ctx.uid), i = d.figures.findIndex(f => f && f.id === figId), f = d.figures[i];
+      const evId = gref.child('events').push().key, fp = `${figPath(ctx.uid)}/figures/${i}`;
+      await db.ref().update({ [`${fp}/x`]: x, [`${fp}/y`]: y, [`${fp}/from`]: { x: f.x, y: f.y }, [`${fp}/moveN`]: (f.moveN || 0) + 1,
+        [`games/${code}/players/${ctx.uid}/movesUsed`]: (me().movesUsed || 0) + 1, [`games/${code}/turn`]: oppUid(),
+        [`games/${code}/events/${evId}`]: { type: 'move', by: ctx.uid, fig: figId, ts: TS() } });
+    },
+    async hide(figId, free) {
+      const d = figData(ctx.uid), i = d.figures.findIndex(f => f && f.id === figId);
+      const evId = gref.child('events').push().key, upd = {};
+      upd[`${figPath(ctx.uid)}/figures/${i}/hide`] = { n: countShotsBy(oppUid()), free: !!free };
+      if (free) upd[`games/${code}/players/${ctx.uid}/bonusHide`] = null;
+      else { upd[`games/${code}/players/${ctx.uid}/hidesUsed`] = (me().hidesUsed || 0) + 1; upd[`games/${code}/turn`] = oppUid(); }
+      upd[`games/${code}/events/${evId}`] = { type: 'hide', by: ctx.uid, fig: figId, free: !!free, ts: TS() };
+      await db.ref().update(upd);
+    },
+    async dropBonus() { await db.ref(`games/${code}/players/${ctx.uid}/bonusHide`).remove(); },
     // Hidden mode: the defender resolves the shot, because only they can read their own stickmen.
-    async resolve(id, hits) {
+    async resolve(id, hits, acc) {
       const shotRef = gref.child('shots/' + id);
-      const res = await shotRef.transaction(s => { if (s === null) return s; if (s.resolved) return; return Object.assign({}, s, { resolved: true, hits }); });
+      const res = await shotRef.transaction(s => { if (s === null) return s; if (s.resolved) return; return Object.assign({}, s, { resolved: true, hits, acc }); });
       const shot = res.committed ? res.snapshot.val() : null;
       if (!shot || !shot.resolved) return;
       const figs = figsReady(ctx.uid) ? figData(ctx.uid).figures : [], upd = {};
       applyHitsUpdates(upd, code, ctx.uid, figPath(ctx.uid), figs, hits, shot.by);
       await db.ref().update(upd);
     },
+    async forfeit() {
+      const o = oppUid();
+      await gref.update({ status: 'finished', winner: o || null, forfeitBy: ctx.uid, nextStarter: ctx.uid, turn: null });
+    },
+    async cancel() { await db.ref().update({ [`games/${code}`]: null, [`users/${ctx.uid}/games/${code}`]: null }); },
     async rematch() {
-      const upd = { [`games/${code}/status`]: 'placing', [`games/${code}/round`]: (game.round || 1) + 1, [`games/${code}/shots`]: null, [`games/${code}/figures`]: null, [`games/${code}/turn`]: null, [`games/${code}/winner`]: null };
-      Object.keys(game.players || {}).forEach(u => { upd[`games/${code}/players/${u}/ready`] = false; });
+      const upd = { [`games/${code}/status`]: 'placing', [`games/${code}/round`]: (game.round || 1) + 1, [`games/${code}/shots`]: null, [`games/${code}/figures`]: null, [`games/${code}/events`]: null, [`games/${code}/turn`]: null, [`games/${code}/winner`]: null, [`games/${code}/forfeitBy`]: null };
+      Object.keys(game.players || {}).forEach(u => { upd[`games/${code}/players/${u}/ready`] = false; upd[`games/${code}/players/${u}/movesUsed`] = 0; upd[`games/${code}/players/${u}/hidesUsed`] = 0; upd[`games/${code}/players/${u}/bonusHide`] = null; });
       await db.ref().update(upd);
     }
   };
@@ -573,24 +866,42 @@ function makeLocalStore(gameSettings) {
       const p = g.players[ctx.uid]; p.ready = true; p.total = figs.length; p.alive = figs.length;
       emitSecret(); emit();
     },
-    async start() { g.status = 'playing'; g.turn = g.nextStarter || g.host; emit(); },
+    async start() { g.status = 'playing'; g.turn = null; g.coin = tossCoin(g); emit(); },
     async fire(x, y, slip) {
       const id = 's' + String(++n).padStart(3, '0'), by = ctx.uid, def = by === 'p1' ? 'p2' : 'p1';
       const shot = { by, x, y, dx: slip[0], dy: slip[1], round: g.round, ts: Date.now(), resolved: false };
       g.shots[id] = shot;
-      const sec = figsOf(def), r = BLOB_R[g.settings.blob] || BLOB_R.head;
-      const hits = computeHits(shot, sec ? sec.figures : [], r);
-      shot.resolved = true; shot.hits = hits;
+      const sec = figsOf(def), figs = sec ? sec.figures : [], st = Object.assign({}, DEFAULTS, g.settings);
+      const hits = computeHits(shot, figs, st);
+      shot.resolved = true; shot.hits = hits; shot.acc = shotAccuracy(shot, figs, st);
       if (sec) hits.forEach(h => { const f = sec.figures.find(x => x.id === h.id); if (f) f.alive = false; });
       const aliveAfter = sec ? sec.figures.filter(f => f.alive !== false).length : 0;
       g.players[def].alive = aliveAfter;
       if (aliveAfter === 0) { g.status = 'finished'; g.winner = by; g.nextStarter = def; g.turn = null; } else g.turn = def;
+      if (hits.length && shot.acc === 100 && visible && gameSettings.hsBonus !== false) g.players[by].bonusHide = true;
       emit();
     },
+    async move(figId, x, y) {
+      const sec = figsOf(ctx.uid), f = sec.figures.find(x => x.id === figId), o = ctx.uid === 'p1' ? 'p2' : 'p1';
+      f.from = { x: f.x, y: f.y }; f.x = x; f.y = y; f.moveN = (f.moveN || 0) + 1;
+      g.players[ctx.uid].movesUsed = (g.players[ctx.uid].movesUsed || 0) + 1; g.turn = o;
+      g.events = g.events || {}; g.events['e' + String(++n).padStart(3, '0')] = { type: 'move', by: ctx.uid, fig: figId, ts: Date.now() };
+      emitSecret(); emit();
+    },
+    async hide(figId, free) {
+      const sec = figsOf(ctx.uid), f = sec.figures.find(x => x.id === figId), o = ctx.uid === 'p1' ? 'p2' : 'p1';
+      f.hide = { n: Object.values(g.shots).filter(sh => sh.by === o && sh.resolved).length, free: !!free };
+      if (free) delete g.players[ctx.uid].bonusHide; else { g.players[ctx.uid].hidesUsed = (g.players[ctx.uid].hidesUsed || 0) + 1; g.turn = o; }
+      g.events = g.events || {}; g.events['e' + String(++n).padStart(3, '0')] = { type: 'hide', by: ctx.uid, fig: figId, free: !!free, ts: Date.now() };
+      emitSecret(); emit();
+    },
+    async dropBonus() { delete g.players[ctx.uid].bonusHide; emit(); },
     async resolve() {},
+    async forfeit() { const o = ctx.uid === 'p1' ? 'p2' : 'p1'; g.status = 'finished'; g.winner = o; g.forfeitBy = ctx.uid; g.nextStarter = ctx.uid; g.turn = null; emit(); },
+    async cancel() {},
     async rematch() {
-      g.status = 'placing'; g.round++; g.shots = {}; g.figures = {}; g.turn = null; g.winner = null;
-      Object.values(g.players).forEach(p => { p.ready = false; });
+      g.status = 'placing'; g.round++; g.shots = {}; g.figures = {}; g.events = {}; g.turn = null; g.winner = null; g.forfeitBy = null;
+      Object.values(g.players).forEach(p => { p.ready = false; p.movesUsed = 0; p.hidesUsed = 0; delete p.bonusHide; });
       secrets.p1 = secrets.p2 = null;
       emitSecret(); emit();
     }
@@ -598,7 +909,58 @@ function makeLocalStore(gameSettings) {
 }
 
 /* ---------- game loop ---------- */
-function resetRound() { knownShots.clear(); revealed.clear(); resolving.clear(); freshIds.clear(); foldQueue = []; pendingReveal = null; placement = null; aim = null; drag = null; stopMeter(); }
+function resetRound() {
+  knownShots.clear(); revealed.clear(); resolving.clear(); freshIds.clear(); vanishing.clear(); seenEvents.clear(); seenMoves.clear(); sliding.clear(); inkFading.clear(); figFading.clear();
+  headshotId = null; lastInk = null; hiddenLast = null; pickMode = null; selectedFig = null; pendingMove = null;
+  foldQueue = []; pendingReveal = null; placement = null; aim = null; drag = null; liveShot = null; stopMeter();
+}
+
+/* ---------- event banners: animated notices above the paper, shown one after another ---------- */
+const bannerQ = [];
+let bannerBusy = false;
+function announce(text, kind, icon, ms) {
+  bannerQ.push({ text, kind: kind || '', icon: icon || '', ms: ms || 2200 });
+  if (!bannerBusy) nextBanner();
+}
+function nextBanner() {
+  const b = bannerQ.shift(); if (!b) { bannerBusy = false; return; }
+  bannerBusy = true;
+  const el = document.createElement('div'); el.className = 'banner ' + b.kind; el.innerHTML = `${b.icon ? `<span class="bicon">${b.icon}</span>` : ''}<span>${b.text}</span>`;
+  $('#banners').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); nextBanner(); }, 380); }, b.ms);
+}
+function clearBanners() { bannerQ.length = 0; $('#banners').innerHTML = ''; bannerBusy = false; }
+
+// What an event means from this player's point of view.
+function eventText(ev) {
+  const mine = ev.by === ctx.uid, who = mine ? 'You' : esc((players()[ev.by] || {}).name || 'They');
+  if (ev.type === 'move') return { text: `${who} moved a stickman`, kind: 'move', icon: '🏃' };
+  if (ev.type === 'hide') return ev.free ? { text: `Headshot bonus: ${who.toLowerCase() === 'you' ? 'you' : who} hid a stickman for free`, kind: 'ghost', icon: '👻' } : { text: `${who} made a stickman invisible`, kind: 'ghost', icon: '👻' };
+  return { text: `${who} did something`, kind: '', icon: '' };
+}
+const seenEvKey = () => 'fp.seenEv.' + (store ? store.code() : '');
+function lastSeenEv() { try { return localStorage.getItem(seenEvKey()); } catch (e) { return null; } }
+function markSeenEv(id) { try { localStorage.setItem(seenEvKey(), id); } catch (e) { /* storage unavailable */ } }
+function headshotFx() {
+  const fx = document.createElement('div'); fx.className = 'headshot'; fx.innerHTML = '<span>HEADSHOT!</span>';
+  $('#screen-game').appendChild(fx); paperEl.classList.add('shake');
+  setTimeout(() => { fx.remove(); paperEl.classList.remove('shake'); headshotId = null; render(); }, 1700);
+}
+
+// Remember the last shot this device has watched unfold, so reopening a game can recap what happened meanwhile.
+const seenKey = () => 'fp.seen.' + (store ? store.code() : '');
+function lastSeen() { try { return localStorage.getItem(seenKey()); } catch (e) { return null; } }
+function markSeen(id) { try { localStorage.setItem(seenKey(), id); } catch (e) { /* storage unavailable */ } }
+function showRecap(ids, evIds) {
+  const items = [];
+  ids.forEach(id => { const s = game.shots[id]; if (s) items.push({ id, html: `${s.by === ctx.uid ? 'You' : esc((players()[s.by] || {}).name || 'They')} ${(s.hits || []).length ? `hit ${(s.hits || []).length === 1 ? 'a stickman' : (s.hits || []).length + ' stickmen'}` : 'missed'}${typeof s.acc === 'number' ? ` (${s.acc}% accuracy)` : ''}.` }); });
+  (evIds || []).forEach(id => { const ev = (game.events || {})[id]; if (ev) items.push({ id, html: eventText(ev).text + '.' }); });
+  items.sort((a, b) => a.id < b.id ? -1 : 1);   // push ids sort by time, so shots and events interleave in order
+  const lines = items.map(i => `<li>${i.html}</li>`).join('');
+  holdFolds = true;
+  overlay(`<h2>While you were away</h2><ul class="recap">${lines}</ul>`,
+    [{ label: 'Got it', act: () => { hideOverlay(); holdFolds = false; if (game && game.status === 'finished') showResult(); else nextFold(); render(); } }]);
+}
 
 /* ---------- press meter: a timed press decides how far the page slips ---------- */
 function meterPos() { const t = (performance.now() - meter.start) / meterLevel().sweepMs; return 1 - Math.abs((t % 2) - 1); }   // ping-pong 0 → 1 → 0
@@ -614,25 +976,9 @@ async function pressMeter(b) {
   const off = meterPos() - 0.5, m = meter, lv = meterLevel(); stopMeter();
   const over = Math.max(0, Math.abs(off) - lv.clean);                 // how far outside the centre zone the marker stopped
   const dx = Math.round(Math.sign(off) * (over / (0.5 - lv.clean)) * lv.max);
-  toast(over === 0 ? 'Clean press — the page lay flat.' : `The page slipped ${off < 0 ? 'left' : 'right'} as you pressed.`);
+  toast(over === 0 ? 'Clean press, the page lay flat.' : `The page slipped ${off < 0 ? 'left' : 'right'} as you pressed.`);
   if (b) b.disabled = true; render();
   try { await store.fire(m.x, m.y, [dx, 0]); } catch (err) { toast(friendlyDb(err)); render(); }
-}
-
-// Remember the last shot this device has watched unfold, so reopening a game can recap what happened meanwhile.
-const seenKey = () => 'fp.seen.' + (store ? store.code() : '');
-function lastSeen() { try { return localStorage.getItem(seenKey()); } catch (e) { return null; } }
-function markSeen(id) { try { localStorage.setItem(seenKey(), id); } catch (e) { /* storage unavailable */ } }
-function showRecap(ids) {
-  const lines = ids.map(id => {
-    const s = game.shots[id]; if (!s) return '';
-    const mine = s.by === ctx.uid, n = (s.hits || []).length;
-    const who = mine ? 'You' : esc((players()[s.by] || {}).name || 'They');
-    return `<li>${who} ${n ? `hit ${n === 1 ? 'a stickman' : n + ' stickmen'}` : 'missed'}.</li>`;
-  }).join('');
-  holdFolds = true;
-  overlay(`<h2>While you were away</h2><ul class="recap">${lines}</ul>`,
-    [{ label: 'Got it', act: () => { hideOverlay(); holdFolds = false; if (game && game.status === 'finished') showResult(); else nextFold(); render(); } }]);
 }
 
 function onSecretUpdate(s) { secret = s; maybeResolve(); render(); }
@@ -641,14 +987,25 @@ function onGameUpdate(g) {
   const prev = game; game = g;
   if (!g) { if (prev) { toast('That game no longer exists.'); exitGame(); } return; }
   if (prev && prev.round !== g.round) resetRound();
-  const shots = g.shots || {}, ls = lastSeen(), recap = [];
+  const shots = g.shots || {}, ls = lastSeen(), recap = [], evRecap = [], lse = lastSeenEv();
   Object.keys(shots).sort().forEach(id => {
     if (knownShots.has(id)) return;
     knownShots.add(id);
     if (firstLoad && shots[id].resolved) { revealed.add(id); if (ctx.mode === 'online' && (!ls || id > ls)) recap.push(id); return; }
     foldQueue.push(id);
   });
-  if (firstLoad && recap.length) { markSeen(recap[recap.length - 1]); holdFolds = true; setTimeout(() => showRecap(recap), 350); }
+  // Powers used by either player arrive as events: announce the new ones, or list them in the recap after time away.
+  Object.keys(g.events || {}).sort().forEach(id => {
+    if (seenEvents.has(id)) return;
+    seenEvents.add(id);
+    const ev = g.events[id];
+    if (firstLoad) { if (ctx.mode === 'online' && ev.by !== ctx.uid && (!lse || id > lse)) evRecap.push(id); return; }
+    const t = eventText(ev); announce(t.text, t.kind, t.icon);
+    if (ev.by !== ctx.uid && ev.type === 'hide') sfx.ghost(); else if (ev.by !== ctx.uid) sfx.slide();
+    if (ev.by !== ctx.uid && !ev.free && g.status === 'playing') announce(ctx.mode === 'local' ? `${esc((players()[ctx.uid] || {}).name || 'Next')}, your turn` : 'Your turn', 'turn', '⚑');
+    markSeenEv(id);
+  });
+  if (firstLoad && (recap.length || evRecap.length)) { if (recap.length) markSeen(recap[recap.length - 1]); if (evRecap.length) markSeenEv(evRecap[evRecap.length - 1]); holdFolds = true; setTimeout(() => showRecap(recap, evRecap), 350); }
   firstLoad = false;
   if (!animating) nextFold();
   if (pendingReveal && !animating && shots[pendingReveal] && shots[pendingReveal].resolved) { const id = pendingReveal; pendingReveal = null; reveal(id); }
@@ -658,32 +1015,46 @@ function onGameUpdate(g) {
     setTimeout(() => { Promise.resolve(store && store.start()).catch(e => toast(friendlyDb(e))).finally(() => { startRequested = false; }); }, 0);
   }
   maybeResolve();
+  maybeRecordResult();
   if (prev && prev.status !== g.status) onStatusChange(prev.status, g.status);
+  paperEl.classList.toggle('show-crease', !!settings().crease);
   render();
 }
 
 function maybeResolve() {
   if (!game || game.status !== 'playing' || !figsReady(ctx.uid)) return;
-  const r = blobR();
+  const st = settings();
   Object.entries(game.shots || {}).forEach(([id, s]) => {
     if (s.by !== ctx.uid && !s.resolved && !resolving.has(id)) {
       resolving.add(id);
-      const hits = computeHits(s, figData(ctx.uid).figures, r);
-      Promise.resolve(store.resolve(id, hits)).catch(e => { resolving.delete(id); toast(friendlyDb(e)); });
+      const figs = figData(ctx.uid).figures, hits = computeHits(s, figs, st), acc = shotAccuracy(s, figs, st);
+      Promise.resolve(store.resolve(id, hits, acc)).catch(e => { resolving.delete(id); toast(friendlyDb(e)); });
     }
   });
+}
+
+// Each player records their own win/loss and accuracy once a round ends (the write is idempotent, so reopening is safe).
+function maybeRecordResult() {
+  if (ctx.mode !== 'online' || !db || !game || game.status !== 'finished' || !game.winner) return;
+  const key = `${game.code}_${game.round}`; if (recorded.has(key)) return; recorded.add(key);
+  const mine = shotsBy(ctx.uid), acc = accuracyOf(ctx.uid, true);
+  db.ref(`profiles/${ctx.uid}/results/${key}`).set({ result: game.winner === ctx.uid ? 'win' : 'loss', acc: acc == null ? 0 : acc, shots: mine.length, opp: oppName(), code: game.code, round: game.round, forfeit: game.forfeitBy === ctx.uid, ts: TS() }).catch(() => {});
 }
 
 function nextFold() {
   if (animating || holdFolds || !foldQueue.length || !game) return;
   const id = foldQueue.shift(), shot = game.shots && game.shots[id];
   if (!shot) { nextFold(); return; }
-  animating = true; aim = null;
+  animating = true; aim = null; liveShot = id;
   render();
   const mine = shot.by === ctx.uid;
   const half = mine ? halfBot : halfTop, other = mine ? halfTop : halfBot;
+  // A slipped press lands offset and crooked, by the real slip amount, before unfolding straight.
+  const px = (paperEl.clientWidth || 300) / SHEET_W, dx = shot.dx || 0, dy = (isFlip() ? -1 : 1) * (shot.dy || 0);
+  half.style.setProperty('--slip', (dx * px).toFixed(1) + 'px'); half.style.setProperty('--slipy', (dy * px).toFixed(1) + 'px'); half.style.setProperty('--rot', (dx / 7).toFixed(2) + 'deg');
   paperEl.classList.add('busy');
   half.classList.add(mine ? 'fold-up' : 'fold-down'); other.classList.add('covered');
+  sfx.fold(); setTimeout(() => sfx.press(), FOLD_MS * 0.42); setTimeout(() => sfx.unfold(), FOLD_MS * 0.6);
   setTimeout(() => {
     half.classList.remove('fold-up', 'fold-down'); other.classList.remove('covered'); paperEl.classList.remove('busy');
     animating = false;
@@ -695,66 +1066,104 @@ function nextFold() {
 
 function reveal(id) {
   revealed.add(id); freshIds.add(id); markSeen(id);
+  const s0 = game.shots[id];
+  if ((s0.hits || []).length && s0.acc === 100) headshotId = id;
   render();
   const s = game.shots[id], hits = s.hits || [], shooter = players()[s.by] || { name: 'Someone' }, mine = s.by === ctx.uid;
-  if (hits.length) toast(mine ? `Splat! You got ${hits.length === 1 ? 'one' : hits.length} of ${oppName()}’s stickmen.` : `${shooter.name} got ${hits.length === 1 ? 'one of your stickmen' : hits.length + ' of your stickmen'}.`);
-  else toast(mine ? 'Miss — the ink landed on empty paper.' : `${shooter.name} missed.`);
-  if (game.status === 'finished') setTimeout(showResult, 1400);
+  const acc = typeof s.acc === 'number' ? ` · ${s.acc}% accuracy` : '';
+  const headshot = hits.length > 0 && s.acc === 100, on = esc(oppName()), sn = esc(shooter.name);
+  if (hits.length && settings().dead === 'gone') { vanishing.add(id); setTimeout(() => { vanishing.delete(id); render(); }, 1900); }
+  if (headshot) { headshotId = id; headshotFx(); sfx.headshot(); buzz([30, 20, 30, 20, 120]); announce(`HEADSHOT! ${mine ? `You got one of ${on}’s stickmen` : `${sn} got one of yours`}`, 'hs', '💥', 2600); }
+  else if (hits.length) { sfx.hit(); buzz([40, 30, 80]); announce((mine ? `Splat! You got ${hits.length === 1 ? 'one' : hits.length} of ${on}’s stickmen` : `${sn} got ${hits.length === 1 ? 'one of your stickmen' : hits.length + ' of your stickmen'}`) + acc, 'hit', '🎯'); }
+  else { sfx.miss(); buzz(15); announce((mine ? 'Miss, the ink landed on empty paper' : `${sn} missed`) + acc, 'miss', '💨'); }
+  if (game.status === 'finished') { setTimeout(showResult, 1400); return; }
+  // A headshot earns a free hide: prompt the shooter right away (they can also bank it for later).
+  if (mine && headshot && hasBonus(ctx.uid)) { pickMode = 'bonus'; selectedFig = null; announce('Headshot bonus: hide one of your stickmen for free', 'ghost', '👻', 2600); render(); }
+  else if (turnUid() === ctx.uid) announce(ctx.mode === 'local' ? `${esc((players()[ctx.uid] || {}).name || 'Next')}, your turn` : 'Your turn', 'turn', '⚑', 1600);
 }
 
 function onStatusChange(from, to) {
   if (to === 'placing' && from === 'lobby') toast(`${oppName()} joined. Place your stickmen.`);
-  if (to === 'playing') { hideOverlay(); const t = players()[game.turn]; toast(`Both ready — ${t ? t.name : 'someone'} goes first.`); }
+  if (to === 'playing') { hideOverlay(); if (game.coin) showCoin(game.coin); else { const t = players()[turnUid()]; toast(`Both ready. ${t ? t.name : 'someone'} goes first.`); } }
   if (to === 'placing' && from === 'finished') { hideOverlay(); toast('Rematch! Place your stickmen.'); }
+  if (to === 'finished' && game.forfeitBy && settled()) setTimeout(showResult, 300);
 }
 
 /* ---------- rendering ---------- */
 function render() {
   if (!game || !$('#screen-game').classList.contains('active')) return;
-  const r = blobR(), items = [], shots = game.shots || {}, oUid = oppUid();
+  const r = blobR(), s = figScale(), items = [], shots = game.shots || {}, oUid = oppUid();
   const push = (layer, svg) => items.push({ layer, svg });
   const dead = {}; dead[ctx.uid] = new Set(); if (oUid) dead[oUid] = new Set();
   const ids = Object.keys(shots).sort();
-  // "Ink fades": only each player's two most recent shots leave visible ink (hits stay crossed out).
-  const fadeN = +settings().fade || 0, recent = {};
-  if (fadeN) ids.forEach(id => { const by = shots[id].by; (recent[by] = recent[by] || []).push(id); });
-  const inkShows = id => !fadeN || recent[shots[id].by].slice(-fadeN).includes(id);
+  // Ink on the page: all shots, the last N shots (both players counted), or none (only the shot that's landing right now).
+  const fadeN = +settings().fade || 0, now = performance.now();
+  // "Recent" counts shots whose fold has played on this screen, so older ink starts fading when the new print lands, not when the shot is fired.
+  const revealedIds = ids.filter(id => revealed.has(id));
+  const inkShows = id => !revealed.has(id) || fadeN === 0 || (fadeN > 0 ? revealedIds.slice(-fadeN).includes(id) : (id === liveShot || freshIds.has(id)));
+  // Ink that stops qualifying fades out over a second instead of vanishing between frames.
+  const inkNow = new Set(ids.filter(inkShows));
+  if (lastInk) lastInk.forEach(id => { if (!inkNow.has(id) && shots[id]) { inkFading.set(id, now + 950); setTimeout(() => { inkFading.delete(id); render(); }, 1000); } });
+  lastInk = inkNow;
   ids.forEach(id => {
-    const s = shots[id], seed = hashStr(id), o = V(s.x, s.y);
-    if (inkShows(id)) push(2, blobSVG(o[0], o[1], r, seed, { kind: 'wet' }));     // the wet dot on the shooter's side
+    const st = shots[id], seed = hashStr(id), o = V(st.x, st.y), showInk = inkNow.has(id), fading = !showInk && inkFading.has(id);
+    if (showInk || fading) push(2, blobSVG(o[0], o[1], r, seed, { kind: 'wet', cls: fading ? 'fading' : '' }));     // the wet dot on the shooter's side
     if (!revealed.has(id)) return;
-    const tg = shotTarget(s), t = V(tg[0], tg[1]);
-    if (inkShows(id)) push(2, blobSVG(t[0], t[1], r * 0.96, seed + 7, { kind: 'print', fresh: freshIds.has(id) }));   // the print after pressing
-    const victim = s.by === ctx.uid ? oUid : ctx.uid;
-    (s.hits || []).forEach(h => {
+    const tg = shotTarget(st), t = V(tg[0], tg[1]);
+    if (showInk || fading) push(2, blobSVG(t[0], t[1], r * 0.96, seed + 7, { kind: 'print', fresh: freshIds.has(id) && showInk, cls: fading ? 'fading' : '' }));   // the print after pressing
+    const victim = st.by === ctx.uid ? oUid : ctx.uid;
+    const gone = settings().dead === 'gone', showDead = !gone || vanishing.has(id) || freshIds.has(id);
+    (st.hits || []).forEach(h => {
       if (victim && dead[victim]) dead[victim].add(h.id);
+      if (!showDead) return;   // in "disappear" mode a hit stickman shows its X once, fades, and is gone
       const p = V(h.x, h.y);
-      push(3, figSVG(p[0], p[1], { id: h.id, seed: hashStr((victim || '') + h.id + game.round), dead: true, fresh: freshIds.has(id) }));
+      push(3, figSVG(p[0], p[1], s, { id: h.id, seed: hashStr((victim || '') + h.id + game.round), dead: true, fresh: freshIds.has(id), cls: (gone ? 'vanish ' : '') + (headshotId === id ? 'headshot' : '') }));
     });
   });
-  const ed = editing();
+  // Relocated stickmen slide from where they stood; the first render of a game just takes positions as they are.
+  const firstRender = !seenMoves.has('init');
+  const slideFor = (uid, f) => {
+    if (!f.moveN || !f.from) return null;
+    const key = `${uid}:${f.id}:${f.moveN}`;
+    if (!seenMoves.has(key)) { seenMoves.add(key); if (!firstRender) { sliding.set(key, now + 1100); setTimeout(() => { sliding.delete(key); render(); }, 1150); } }
+    if (!sliding.has(key)) return null;
+    const a = V(f.from.x, f.from.y), b = V(f.x, f.y); return [a[0] - b[0], a[1] - b[1]];
+  };
+  const ed = editing(), canDrag = ed || (pickMode === 'move' && !pendingMove);
   myFigs().forEach(f => {
     if (!f || dead[ctx.uid].has(f.id)) return;
-    const p = V(f.x, f.y);
-    push(1, figSVG(p[0], p[1], { id: f.id, seed: hashStr(ctx.uid + f.id + game.round), cls: 'mine' + (ed ? ' drag' : '') }));
+    const moved = pendingMove && pendingMove.id === f.id, p = V(moved ? pendingMove.x : f.x, moved ? pendingMove.y : f.y);
+    if (moved) { const q = V(f.x, f.y); push(1, `<circle cx="${q[0]}" cy="${(q[1] - 4 * s).toFixed(1)}" r="${(40 * s + 6).toFixed(1)}" fill="none" stroke="#9aa39b" stroke-width="1.5" stroke-dasharray="4 4"/>`); }
+    const ghost = game.status === 'playing' && isHiddenFig(f, ctx.uid);
+    push(1, figSVG(p[0], p[1], s, { id: f.id, seed: hashStr(ctx.uid + f.id + game.round), cls: 'mine' + (canDrag ? ' drag' : '') + (ghost ? ' ghost' : '') + (moved ? ' preview' : '') + ((pickMode === 'hide' || pickMode === 'bonus') ? ' pick' : ''), ghost, selected: selectedFig === f.id, slide: moved ? null : slideFor(ctx.uid, f) }));
   });
   if (visibleMode() && oUid && figsReady(oUid)) {
+    // Their hidden stickmen fade out when hidden and fade back in when the hide expires.
+    const hiddenNow = new Set();
+    figData(oUid).figures.forEach(f => { if (f && !dead[oUid].has(f.id) && game.status === 'playing' && isHiddenFig(f, oUid)) hiddenNow.add(f.id); });
+    if (hiddenLast) {
+      hiddenNow.forEach(id => { if (!hiddenLast.has(id)) { figFading.set(id, { type: 'hide', until: now + 950 }); setTimeout(() => { figFading.delete(id); render(); }, 1000); } });
+      hiddenLast.forEach(id => { if (!hiddenNow.has(id) && !dead[oUid].has(id)) { figFading.set(id, { type: 'unhide', until: now + 950 }); setTimeout(() => { figFading.delete(id); render(); }, 1000); announce(`${esc(oppName())}’s stickman is visible again`, 'ghost', '👁', 1800); } });
+    }
+    hiddenLast = hiddenNow;
     figData(oUid).figures.forEach(f => {
       if (!f || dead[oUid].has(f.id)) return;
+      const fade = figFading.get(f.id);
+      if (hiddenNow.has(f.id) && !(fade && fade.type === 'hide')) return;
       const p = V(f.x, f.y);
-      push(1, figSVG(p[0], p[1], { id: f.id, seed: hashStr(oUid + f.id + game.round), cls: 'theirs' }));
+      push(1, figSVG(p[0], p[1], s, { id: f.id, seed: hashStr(oUid + f.id + game.round), cls: 'theirs' + (fade ? (fade.type === 'hide' ? ' hiding' : ' unhiding') : ''), slide: slideFor(oUid, f) }));
     });
   }
-  if (aim && settled() && !meter) {
-    const a = V(aim.x, aim.y);
-    const g = Math.max(r + 8, 16);   // crosshair gap: the dot can be tiny, so mark where it sits without hiding it
+  seenMoves.add('init');
+  if (aim && settled() && !meter && !pickMode) {
+    const a = V(aim.x, aim.y), g = Math.max(r + 8, 16);   // crosshair with a gap: the dot can be tiny, so mark where it sits without hiding it
     push(4, `<g class="aimring" fill="none" stroke="#c41e1e" stroke-width="1.2"><line x1="${a[0] - g - 16}" y1="${a[1]}" x2="${a[0] - g}" y2="${a[1]}"/><line x1="${a[0] + g}" y1="${a[1]}" x2="${a[0] + g + 16}" y2="${a[1]}"/><line x1="${a[0]}" y1="${a[1] - g - 16}" x2="${a[0]}" y2="${a[1] - g}"/><line x1="${a[0]}" y1="${a[1] + g}" x2="${a[0]}" y2="${a[1] + g + 16}"/></g>` +
       blobSVG(a[0], a[1], r, hashStr('aim'), { kind: 'wet', cls: 'aim' }));
   }
   items.sort((a, b) => a.layer - b.layer);
   const body = items.map(i => i.svg).join('');   // each half clips to its own viewBox, so ink across the crease just works
-  svgTop.innerHTML = paperBG('t', 0) + body;
-  svgBot.innerHTML = paperBG('b', HALF_H) + body;
+  svgTop.innerHTML = paperBG(0) + body;
+  svgBot.innerHTML = paperBG(HALF_H) + body;
   renderLabels(); $('#status').innerHTML = statusHTML(); renderActions();
   freshIds.clear();
   sizePaper();
@@ -763,32 +1172,48 @@ function render() {
 function renderLabels() {
   const m = me(), o = opp();
   const total = p => p.total || settings().figures || 5;
-  const deadCount = uid => { let n = 0; Object.keys(game.shots || {}).forEach(id => { if (!revealed.has(id)) return; const s = game.shots[id]; const victim = s.by === ctx.uid ? oppUid() : ctx.uid; if (victim === uid) n += (s.hits || []).length; }); return n; };
-  const standing = (uid, p) => (p.ready || game.status === 'playing' || game.status === 'finished')
-    ? `${Math.max(0, total(p) - deadCount(uid))}/${total(p)}` : 'placing';
-  $('#lbl-opp').innerHTML = o ? `<b>${esc(o.name)}</b> ${standing(oppUid(), o)}` : 'waiting for a friend';
-  $('#lbl-me').innerHTML = m ? `<b>${ctx.mode === 'local' ? esc(m.name) : 'You'}</b> ${standing(ctx.uid, m)}` : '';
+  const deadCount = uid => { let n = 0; Object.keys(game.shots || {}).forEach(id => { if (!revealed.has(id)) return; const st = game.shots[id]; const victim = st.by === ctx.uid ? oppUid() : ctx.uid; if (victim === uid) n += (st.hits || []).length; }); return n; };
+  const line = (uid, p, who) => {
+    if (!(p.ready || game.status === 'playing' || game.status === 'finished')) return `<b>${who}</b> placing`;
+    const acc = accuracyOf(uid);
+    return `<b>${who}</b> ${Math.max(0, total(p) - deadCount(uid))}/${total(p)}${acc == null ? '' : ` <span class="acc">${acc}%</span>`}`;
+  };
+  $('#lbl-opp').innerHTML = o ? line(oppUid(), o, esc(o.name)) : 'waiting for a friend';
+  $('#lbl-me').innerHTML = m ? line(ctx.uid, m, ctx.mode === 'local' ? esc(m.name) : 'You') : '';
 }
 
 function statusHTML() {
   const m = me(), o = opp(), on = esc(oppName());
   if (!m) return 'Joining…';
+  // The result (hit, miss, win) is only shown once the page has folded, pressed and unfolded on this screen.
+  if ((game.status === 'playing' || game.status === 'finished') && !meter) {
+    if (animating || foldQueue.length) return 'Folding and pressing…';
+    if (pendingReveal) return `Ink’s on the paper. ${on} will see it unfold when they next open the game. Safe to close and come back later.`;
+  }
   switch (game.status) {
     case 'lobby': return m.ready ? `Locked in. Waiting for a friend to join with code <b>${esc(game.code)}</b>.` : `Share code <b>${esc(game.code)}</b> with a friend. Meanwhile, drag your stickmen into position.`;
     case 'placing':
       if (editing()) return `Drag your <b>${myFigs().length}</b> stickmen anywhere on your half (the bottom), then tap <b>Ready</b>.`;
       if (o && !o.ready) return ctx.mode === 'local' ? `Locked in. Pass the phone so ${on} can place theirs.` : `Locked in. Waiting for ${on} to place their stickmen…`;
-      return 'Both ready — starting…';
+      return 'Both ready, starting…';
     case 'playing':
       if (meter) { const lv = meterLevel(); return `<div class="meter"><div class="meter-label">Stop the marker in the yellow zone to press the page flat</div><div class="track" id="meter-track"><div class="zone" style="left:${(50 - lv.clean * 100).toFixed(2)}%;width:${(lv.clean * 200).toFixed(2)}%"></div><div class="mark" id="meter-mark"></div></div></div>`; }
       if (animating) return 'Folding and pressing…';
-      if (pendingReveal || myPending()) return `Ink’s on the paper. ${on} will see it unfold when they next open the game — safe to close and come back later.`;
-      if (game.turn === ctx.uid) {
+      if (pendingReveal || myPending()) return `Ink’s on the paper. ${on} will see it unfold when they next open the game. Safe to close and come back later.`;
+      if (pickMode === 'move') return pendingMove ? `Move it there? This uses your turn.` : `<b>Relocate.</b> Drag one of your stickmen to a new spot. This uses your turn.`;
+      if (pickMode === 'hide') return selectedFig ? `Make this one invisible for ${on}’s next shot? This uses your turn.` : `<b>Invisibility.</b> Tap one of your stickmen to hide it from ${on} for their next shot. This uses your turn.`;
+      if (pickMode === 'bonus') return selectedFig ? `Hide this one for ${on}’s next shot? It’s free.` : `<b>Headshot bonus!</b> Tap one of your stickmen to hide it from ${on} for their next shot. Free.`;
+      if (turnUid() === ctx.uid) {
         if (aim) return `Ink’s wet. Tap <b>Fold &amp; press</b> to transfer it.`;
-        return visibleMode() ? `<b>Your turn.</b> Pick one of their stickmen, judge where it lands when the page folds, and tap that spot on your half.` : `<b>Your turn.</b> Tap anywhere on your half to drop a wet ink dot.`;
+        const powers = [movesLeft(ctx.uid) ? `${movesLeft(ctx.uid)} relocate${movesLeft(ctx.uid) === 1 ? '' : 's'}` : '', hidesLeft(ctx.uid) ? `${hidesLeft(ctx.uid)} hide${hidesLeft(ctx.uid) === 1 ? '' : 's'}` : ''].filter(Boolean).join(', ');
+        return (visibleMode() ? `<b>Your turn.</b> Tap a spot on your half to aim at one of their stickmen` : `<b>Your turn.</b> Tap anywhere on your half to drop a wet ink dot`) + (powers ? `, or use a power (${powers} left).` : '.');
       }
-      return ctx.mode === 'local' ? `Pass the phone to <b>${esc(players()[game.turn] ? players()[game.turn].name : '')}</b>.` : `${on}’s turn. Safe to close — come back any time.`;
-    case 'finished': { const w = players()[game.winner]; return w ? (game.winner === ctx.uid ? `<b>You win!</b>` : `<b>${esc(w.name)}</b> wins.`) : 'Game over.'; }
+      return ctx.mode === 'local' ? `Pass the phone to <b>${esc(players()[turnUid()] ? players()[turnUid()].name : '')}</b>.` : `${on}’s turn. Safe to close, come back any time.`;
+    case 'finished': {
+      const w = players()[game.winner];
+      if (game.forfeitBy) return game.forfeitBy === ctx.uid ? `You forfeited. <b>${esc(w ? w.name : '')}</b> takes it.` : `<b>${esc((players()[game.forfeitBy] || {}).name || 'They')}</b> forfeited. You win.`;
+      return w ? (game.winner === ctx.uid ? `<b>You win!</b>` : `<b>${esc(w.name)}</b> wins.`) : 'Game over.';
+    }
   }
   return '';
 }
@@ -801,8 +1226,15 @@ function renderActions() {
     else if (ctx.mode === 'local' && o && !o.ready) a.push(btn(`Pass to ${esc(o.name)}`, 'pass', 'primary'));
   } else if (game.status === 'playing' && settled() && !myPending()) {
     if (meter) a.push(btn('Press!', 'press', 'primary'));
-    else if (game.turn === ctx.uid) { if (aim) { a.push(btn('Clear', 'clear', 'secondary')); a.push(btn('Fold &amp; press', 'fire', 'primary')); } }
-    else if (ctx.mode === 'local' && players()[game.turn]) a.push(btn(`Pass to ${esc(players()[game.turn].name)}`, 'pass', 'primary'));
+    else if (pickMode === 'move') { a.push(btn('Cancel', 'cancelpick', 'secondary')); if (pendingMove) a.push(btn('Move it', 'confirmmove', 'primary')); }
+    else if (pickMode === 'hide') { a.push(btn('Cancel', 'cancelpick', 'secondary')); if (selectedFig) a.push(btn('Hide it', 'confirmhide', 'primary')); }
+    else if (pickMode === 'bonus') { a.push(btn('Later', 'cancelpick', 'secondary')); if (selectedFig) a.push(btn('Hide it (free)', 'confirmbonus', 'primary')); }
+    else if (turnUid() === ctx.uid) {
+      if (aim) { a.push(btn('Clear', 'clear', 'secondary')); a.push(btn('Fold &amp; press', 'fire', 'primary')); }
+      else { if (movesLeft(ctx.uid)) a.push(btn(`🏃 Relocate <small>${movesLeft(ctx.uid)}</small>`, 'pickmove', 'secondary')); if (hidesLeft(ctx.uid)) a.push(btn(`👻 Hide <small>${hidesLeft(ctx.uid)}</small>`, 'pickhide', 'secondary')); if (hasBonus(ctx.uid)) a.push(btn('👻 Free hide', 'pickbonus', 'secondary')); }
+    }
+    else if (hasBonus(ctx.uid)) a.push(btn('👻 Use headshot bonus', 'pickbonus', 'secondary'));
+    else if (ctx.mode === 'local' && players()[turnUid()]) a.push(btn(`Pass to ${esc(players()[turnUid()].name)}`, 'pass', 'primary'));
   } else if (game.status === 'finished' && settled()) {
     a.push(btn('Rematch', 'rematch', 'primary'));
   }
@@ -822,6 +1254,7 @@ svgTop.setAttribute('viewBox', `0 0 ${SHEET_W} ${HALF_H}`); svgBot.setAttribute(
 /* ---------- actions ---------- */
 async function doAct(act, b) {
   if (!game || !store) return;
+  sfx.unlock();
   try {
     if (act === 'shuffle') { shufflePlacement(); render(); }
     else if (act === 'ready') { if (b) b.disabled = true; await store.saveFigures(myFigs().map(f => ({ id: f.id, x: f.x, y: f.y, alive: true }))); placement = null; render(); }
@@ -832,66 +1265,103 @@ async function doAct(act, b) {
       if (b) b.disabled = true; render(); await store.fire(a.x, a.y, rollSlip(settings().wobble));
     }
     else if (act === 'press') { await pressMeter(b); }
-    else if (act === 'pass') { const target = game.status === 'playing' ? game.turn : oppUid(); if (target) showPass(target); }
+    else if (act === 'pass') { const target = game.status === 'playing' ? turnUid() : oppUid(); if (target) showPass(target); }
     else if (act === 'rematch') { if (b) b.disabled = true; await store.rematch(); }
+    else if (act === 'forfeit') { await store.forfeit(); }
+    else if (act === 'pickmove') { pickMode = 'move'; aim = null; selectedFig = null; pendingMove = null; render(); }
+    else if (act === 'pickhide') { pickMode = 'hide'; aim = null; selectedFig = null; render(); }
+    else if (act === 'pickbonus') { pickMode = 'bonus'; aim = null; selectedFig = null; render(); }
+    else if (act === 'cancelpick') { pickMode = null; selectedFig = null; pendingMove = null; render(); }
+    else if (act === 'confirmmove') { if (!pendingMove) return; const m = pendingMove; pickMode = null; pendingMove = null; if (b) b.disabled = true; render(); sfx.slide(); await store.move(m.id, m.x, m.y); }
+    else if (act === 'confirmhide' || act === 'confirmbonus') { if (!selectedFig) return; const id = selectedFig, free = act === 'confirmbonus'; pickMode = null; selectedFig = null; if (b) b.disabled = true; render(); sfx.ghost(); await store.hide(id, free); }
   } catch (err) { toast(friendlyDb(err)); render(); }
 }
 $('#actions').addEventListener('click', e => { const b = e.target.closest('button[data-act]'); if (b) doAct(b.dataset.act, b); });
 $('#status').addEventListener('pointerdown', e => { if (meter && e.target.closest('.track')) pressMeter(); });
 
+function showCoin(coin) {
+  const hn = (players()[coin.heads] || {}).name || 'Heads', tn = (players()[coin.tails] || {}).name || 'Tails', fn = (players()[coin.first] || {}).name || 'Someone';
+  const ini = n => esc(String(n).trim().charAt(0).toUpperCase() || '?');
+  const spins = 5 + (coin.n || 1) % 3, end = spins * 360 + (coin.side === 'tails' ? 180 : 0);
+  overlay(`<h2>Who goes first?</h2><p class="coin-sides"><span>Heads: ${esc(hn)}</span><span>Tails: ${esc(tn)}</span></p>` +
+    `<div class="coin-wrap"><div class="coin" style="--end:${end}deg"><div class="cface heads"><span>${ini(hn)}</span><small>heads</small></div><div class="cface tails"><span>${ini(tn)}</span><small>tails</small></div></div><div class="coin-shadow"></div></div>` +
+    `<p class="coin-result" id="coin-result">Flipping…</p>`, []);
+  sfx.coin();
+  const token = coin.n || 0;
+  setTimeout(() => {
+    if (!game || !game.coin || (game.coin.n || 0) !== token) return;   // the sheet was closed or the game moved on
+    sfx.clink();
+    const r = $('#coin-result'); if (r) r.innerHTML = `<b>${coin.side === 'heads' ? 'Heads' : 'Tails'}!</b> ${esc(fn)} goes first.`;
+    const b = $('#ov-btns'); if (b) { b.innerHTML = ''; const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'primary'; btn.textContent = ctx.mode === 'local' && coin.first !== ctx.uid ? `Pass to ${fn}` : (coin.first === ctx.uid ? 'Let’s go' : 'OK'); btn.onclick = () => { hideOverlay(); if (ctx.mode === 'local' && coin.first !== ctx.uid) showPass(coin.first); render(); }; b.appendChild(btn); }
+  }, 2300);
+}
 function showPass(uid) {
   const p = players()[uid]; if (!p) return;
   overlay(`<h2>Pass the phone to ${esc(p.name)}</h2><p>${visibleMode() ? 'Their turn to aim.' : `${esc(p.name)}, no peeking until it’s in your hands.`}</p>`,
-    [{ label: `I’m ${esc(p.name)}, continue`, act: () => { ctx.uid = uid; ctx.name = p.name; placement = null; aim = null; hideOverlay(); store.refresh(); render(); } }]);
+    [{ label: `I’m ${esc(p.name)}, continue`, act: () => { ctx.uid = uid; ctx.name = p.name; placement = null; aim = null; liveShot = null; pickMode = null; selectedFig = null; pendingMove = null; hiddenLast = null; clearBanners(); hideOverlay(); store.refresh(); render(); } }]);
 }
 function showResult() {
   const w = players()[game.winner]; if (!w) return;
-  const iWon = game.winner === ctx.uid;
+  const iWon = game.winner === ctx.uid, acc = accuracyOf(ctx.uid, true), oacc = accuracyOf(oppUid(), true);
+  const celebrate = (iWon || ctx.mode === 'local') && !game.forfeitBy;   // on a shared phone the winner is looking at the screen too
   const title = ctx.mode === 'local' ? `${esc(w.name)} wins!` : (iWon ? 'You win!' : `${esc(w.name)} wins this one.`);
-  const line = iWon ? `Every one of ${esc(oppName())}’s stickmen is under ink.` : 'All your stickmen are out. Rematch?';
-  overlay(`<h2>${title}</h2><p>${line}</p>`, [
+  let line = iWon ? `Every one of ${esc(oppName())}’s stickmen is under ink.` : 'All your stickmen are out. Rematch?';
+  if (game.forfeitBy) line = game.forfeitBy === ctx.uid ? 'You forfeited this one.' : `${esc((players()[game.forfeitBy] || {}).name || 'They')} forfeited.`;
+  const stats = `<div class="bigstat"><div><b>${acc == null ? '–' : acc + '%'}</b><span>${ctx.mode === 'local' ? esc(me().name) : 'your'} accuracy</span></div><div><b>${oacc == null ? '–' : oacc + '%'}</b><span>${esc(oppName())}</span></div></div>`;
+  overlay(`<h2>${title}</h2><p>${line}</p>${stats}`, [
     { label: 'Rematch', act: () => { hideOverlay(); doAct('rematch'); } },
     { label: ctx.mode === 'local' ? 'Quit' : 'Back to lobby', cls: 'secondary', act: () => { hideOverlay(); exitGame(); } }
   ]);
+  if (celebrate) { sfx.win(); fireworks.start(5000); buzz([60, 40, 60, 40, 120]); }
 }
 
 /* ---------- pointer handling on the player's half ---------- */
 function svgPt(svg, e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
-const FX = [PAD.x, SHEET_W - PAD.x], FY = [HALF_H + PAD.top, SHEET_H - PAD.bottom];
 svgBot.addEventListener('pointerdown', e => {
   if (!game || animating) return;
   const pt = svgPt(svgBot, e);
-  if (editing()) {
-    const gEl = e.target.closest ? e.target.closest('.fig.mine') : null; if (!gEl) return;
-    const f = (placement || []).find(x => x.id === gEl.dataset.id); if (!f) return;
+  const own = e.target.closest ? e.target.closest('.fig.mine') : null;
+  if (editing() || (pickMode === 'move' && !pendingMove && settled())) {
+    if (!own) return;
+    const f = (editing() ? (placement || []) : myFigs()).find(x => x.id === own.dataset.id); if (!f) return;
     const v = V(f.x, f.y);
-    drag = { id: f.id, dx: v[0] - pt.x, dy: v[1] - pt.y, el: gEl, tilt: gEl.dataset.tilt || 0, vx: null, vy: null };
-    svgBot.setPointerCapture(e.pointerId); gEl.classList.add('lift'); e.preventDefault();
-  } else if (game.status === 'playing' && game.turn === ctx.uid && settled() && !myPending() && !meter) {
-    if (pt.y < HALF_H) { toast('Aim on your own half — the ink folds over onto theirs.'); return; }
+    drag = { id: f.id, dx: v[0] - pt.x, dy: v[1] - pt.y, el: own, tilt: own.dataset.tilt || 0, vx: null, vy: null };
+    svgBot.setPointerCapture(e.pointerId); own.classList.add('lift'); e.preventDefault();
+  } else if ((pickMode === 'hide' || pickMode === 'bonus') && settled()) {
+    if (!own) return;
+    const f = myFigs().find(x => x.id === own.dataset.id); if (!f) return;
+    selectedFig = selectedFig === f.id ? null : f.id; sfx.tick(); render();
+  } else if (pickMode) {
+    return;
+  } else if (game.status === 'playing' && turnUid() === ctx.uid && settled() && !myPending() && !meter) {
+    if (pt.y < HALF_H) { toast('Aim on your own half. The ink folds over onto theirs.'); return; }
     const vx = clamp(pt.x, 12, SHEET_W - 12), vy = clamp(pt.y, HALF_H + 12, SHEET_H - 12), l = V(vx, vy);
-    aim = { x: Math.round(l[0]), y: Math.round(l[1]) }; render();
+    aim = { x: Math.round(l[0]), y: Math.round(l[1]) }; liveShot = null; render();
   }
 });
 svgBot.addEventListener('pointermove', e => {
   if (!drag) return;
-  const pt = svgPt(svgBot, e);
-  drag.vx = clamp(pt.x + drag.dx, FX[0], FX[1]); drag.vy = clamp(pt.y + drag.dy, FY[0], FY[1]);
+  const pt = svgPt(svgBot, e), pad = padOf(figScale());
+  drag.vx = clamp(pt.x + drag.dx, pad.x, SHEET_W - pad.x); drag.vy = clamp(pt.y + drag.dy, HALF_H + pad.top, SHEET_H - pad.bottom);
   drag.el.setAttribute('transform', `translate(${drag.vx.toFixed(1)},${drag.vy.toFixed(1)}) rotate(${drag.tilt})`);
 });
 function endDrag() {
   if (!drag) return;
-  if (drag.vx != null && placement) { const f = placement.find(x => x.id === drag.id); if (f) { const l = V(drag.vx, drag.vy); f.x = Math.round(l[0]); f.y = Math.round(l[1]); } }
+  if (drag.vx != null) {
+    const l = V(drag.vx, drag.vy);
+    if (editing() && placement) { const f = placement.find(x => x.id === drag.id); if (f) { f.x = Math.round(l[0]); f.y = Math.round(l[1]); } }
+    else if (pickMode === 'move') { const f = myFigs().find(x => x.id === drag.id); if (f && Math.hypot(f.x - l[0], f.y - l[1]) > 6) pendingMove = { id: drag.id, x: Math.round(l[0]), y: Math.round(l[1]) }; }
+  }
   drag = null; render();
 }
 svgBot.addEventListener('pointerup', endDrag);
 svgBot.addEventListener('pointercancel', endDrag);
-svgTop.addEventListener('pointerdown', () => { if (game && game.status === 'playing' && game.turn === ctx.uid && settled()) toast('Aim on your own half — the ink folds over onto theirs.'); });
+svgTop.addEventListener('pointerdown', () => { if (game && game.status === 'playing' && turnUid() === ctx.uid && settled() && !pickMode) toast('Aim on your own half. The ink folds over onto theirs.'); });
 
 /* ---------- entering / leaving games ---------- */
 function enterGame() {
   lobbyStop();
-  resetRound(); firstLoad = true; animating = false; holdFolds = false; startRequested = false; game = null; secret = null;
+  resetRound(); firstLoad = true; animating = false; holdFolds = false; startRequested = false; game = null; secret = null; clearBanners();
   halfTop.className = 'half top'; halfBot.className = 'half bottom'; paperEl.classList.remove('busy');
   show('game');
   $('#g-code').textContent = store.code();
@@ -901,15 +1371,27 @@ function enterGame() {
 }
 function exitGame() {
   if (store) { try { store.unsubscribe(); } catch (e) { /* ignore */ } }
-  store = null; game = null; secret = null; resetRound(); stopMeter(); hideOverlay(); holdFolds = false;
-  halfTop.className = 'half top'; halfBot.className = 'half bottom'; paperEl.classList.remove('busy');
+  store = null; game = null; secret = null; resetRound(); stopMeter(); hideOverlay(); holdFolds = false; clearBanners();
+  halfTop.className = 'half top'; halfBot.className = 'half bottom'; paperEl.classList.remove('busy', 'show-crease');
   history.replaceState(null, '', location.pathname + location.search);
   if (ctx.mode === 'local') { ctx.mode = ctx.authUid ? 'online' : null; ctx.uid = ctx.authUid; ctx.name = ctx.authName; }
   if (ctx.authUid && auth) showLobby(); else show('auth');
 }
 $('#btn-leave').addEventListener('click', () => {
-  overlay(`<h2>Leave this game?</h2><p>${ctx.mode === 'local' ? 'The game on this device will be lost.' : 'It stays in your games list — come back any time.'}</p>`,
-    [{ label: 'Leave', act: () => { hideOverlay(); exitGame(); } }, { label: 'Stay', cls: 'secondary', act: hideOverlay }]);
+  if (!game) { exitGame(); return; }
+  const btns = [];
+  if (game.status === 'lobby') {
+    btns.push({ label: 'Leave for now', act: () => { hideOverlay(); exitGame(); } });
+    if (ctx.mode === 'online') btns.push({ label: 'Cancel this game', cls: 'danger', act: async () => { hideOverlay(); try { await store.cancel(); } catch (e) { toast(friendlyDb(e)); } exitGame(); } });
+  } else if (game.status === 'placing' || game.status === 'playing') {
+    if (ctx.mode === 'online') btns.push({ label: 'Leave for now', act: () => { hideOverlay(); exitGame(); } });
+    btns.push({ label: 'Forfeit, ' + esc(oppName()) + ' wins', cls: 'danger', act: () => { hideOverlay(); doAct('forfeit'); } });
+  } else {
+    btns.push({ label: 'Back to lobby', act: () => { hideOverlay(); exitGame(); } });
+  }
+  btns.push({ label: 'Stay', cls: 'secondary', act: hideOverlay });
+  const p = game.status === 'finished' ? 'This game is over.' : (ctx.mode === 'local' ? 'Forfeiting ends the game on this device.' : 'Leaving keeps the game in your list, come back any time. Forfeiting ends it and counts as a loss.');
+  overlay(`<h2>Leave this game?</h2><p>${p}</p>`, btns);
 });
 $('#btn-copy').addEventListener('click', () => {
   if (!store) return;
@@ -920,19 +1402,15 @@ $('#btn-copy').addEventListener('click', () => {
   else prompt('Copy this:', text);
 });
 
-function askLocalSettings() {
-  overlay(`<h2>Pass &amp; play</h2><p>Two players, one device.</p>${settingsHTML('loc')}`,
-    [{ label: 'Start', act: () => { const s = readSettings('loc'); hideOverlay(); startLocal(s); } }, { label: 'Cancel', cls: 'secondary', act: hideOverlay }]);
-}
+function askLocalSettings() { openSetup('Pass &amp; play', 'Two players, one device.', st => startLocal(st)); }
 function startLocal(gameSettings) { ctx.mode = 'local'; ctx.uid = 'p1'; ctx.name = 'Player 1'; store = makeLocalStore(Object.assign({}, DEFAULTS, gameSettings || {})); enterGame(); }
 $('#btn-local').addEventListener('click', askLocalSettings);
 $('#btn-local2').addEventListener('click', askLocalSettings);
 
-/* ---------- lobby: your games, friends, requests ---------- */
-const lobby = { refs: [], games: {}, gameRefs: {}, friends: {}, requests: {}, presence: {}, presRefs: {} };
+/* ---------- lobby: your games, friends, requests, record ---------- */
+const lobby = { refs: [], games: {}, gameRefs: {}, friends: {}, requests: {}, presence: {}, presRefs: {}, results: {} };
 const setLobbyErr = m => { $('#lobby-error').textContent = m || ''; };
 const setFriendErr = m => { $('#friend-error').textContent = m || ''; };
-$('#new-settings').innerHTML = settingsHTML('lob');
 
 function lobbyListen() {
   lobbyStop();
@@ -949,48 +1427,89 @@ function lobbyListen() {
     renderFriends();
   });
   on(db.ref(`friendRequests/${ctx.uid}`), snap => { lobby.requests = snap.val() || {}; renderFriends(); });
+  on(db.ref(`profiles/${ctx.uid}/results`), snap => { lobby.results = snap.val() || {}; renderRecord(); });
 }
 function lobbyStop() {
   lobby.refs.forEach(([r, h]) => r.off('value', h)); lobby.refs = [];
   Object.values(lobby.gameRefs).forEach(([r, h]) => r.off('value', h)); lobby.gameRefs = {}; lobby.games = {};
   Object.values(lobby.presRefs).forEach(([r, h]) => r.off('value', h)); lobby.presRefs = {};
 }
+function recordSummary() {
+  const rs = Object.values(lobby.results || {}).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const wins = rs.filter(r => r.result === 'win').length, losses = rs.length - wins;
+  const played = rs.filter(r => r.shots > 0);
+  const avg = played.length ? Math.round(played.reduce((a, r) => a + (r.acc || 0), 0) / played.length) : null;
+  const best = played.length ? Math.max(...played.map(r => r.acc || 0)) : null;
+  return { rs, wins, losses, avg, best };
+}
+function renderRecord() {
+  const { rs, wins, losses, avg } = recordSummary();
+  $('#lobby-stats').innerHTML = rs.length ? `<span><b>${wins}</b> won · <b>${losses}</b> lost${avg == null ? '' : ` · <b>${avg}%</b> accuracy`}</span><button type="button" class="link" id="btn-stats">Stats</button>` : '<span>No finished games yet.</span>';
+  const b = $('#btn-stats'); if (b) b.onclick = showStats;
+}
+function showStats() {
+  const { rs, wins, losses, avg, best } = recordSummary();
+  const list = rs.slice(0, 12).map(r => `<li><span>vs ${esc(r.opp || '?')}${r.forfeit ? ' (forfeit)' : ''}</span><span class="${r.result === 'win' ? 'w' : 'l'}">${r.result === 'win' ? 'won' : 'lost'} · ${r.shots ? (r.acc || 0) + '%' : '–'}</span></li>`).join('');
+  overlay(`<h2>Your record</h2><div class="bigstat"><div><b>${wins}</b><span>wins</span></div><div><b>${losses}</b><span>losses</span></div><div><b>${avg == null ? '–' : avg + '%'}</b><span>avg accuracy</span></div><div><b>${best == null ? '–' : best + '%'}</b><span>best game</span></div></div><ul class="results">${list || '<li>No finished games yet.</li>'}</ul>`,
+    [{ label: 'Close', cls: 'secondary', act: hideOverlay }]);
+}
+function gameRow(c) {
+  const g = lobby.games[c], other = Object.keys(g.players || {}).find(u => u !== ctx.uid);
+  const on = other && g.players[other] ? esc(g.players[other].name) : null;
+  let sub = '', rank = 2, mine = false;
+  if (g.status === 'lobby') { sub = 'Waiting for someone to join with the code'; rank = 3; }
+  else if (g.status === 'placing') { const mp = g.players[ctx.uid]; if (mp && !mp.ready) { sub = 'Place your stickmen'; rank = 0; mine = true; } else sub = `Waiting for ${on} to place theirs`; }
+  else if (g.status === 'playing') { const t = g.turn || (g.coin && g.coin.first); if (t === ctx.uid) { sub = 'Your turn'; rank = 0; mine = true; } else sub = `${on}’s turn`; }
+  else if (g.status === 'finished') { sub = g.forfeitBy ? (g.forfeitBy === ctx.uid ? 'You forfeited' : `${on || 'They'} forfeited, you won`) : (g.winner === ctx.uid ? 'You won' : `${on || 'They'} won`); rank = 4; }
+  return { c, title: on ? `vs ${on}` : `Game ${esc(c)}`, sub, rank, mine, finished: g.status === 'finished', ts: g.createdAt || 0 };
+}
 function renderGamesList() {
-  const el = $('#games-list'), codes = Object.keys(lobby.games).filter(c => lobby.games[c]);
-  if (!codes.length) { el.innerHTML = '<div class="empty">No games yet. Challenge a friend below, or make a code to share.</div>'; return; }
-  const rows = codes.map(c => {
-    const g = lobby.games[c], other = Object.keys(g.players || {}).find(u => u !== ctx.uid);
-    const on = other && g.players[other] ? esc(g.players[other].name) : null;
-    let sub = '', rank = 2, mine = false;
-    if (g.status === 'lobby') { sub = 'Waiting for someone to join with the code'; rank = 3; }
-    else if (g.status === 'placing') { const mp = g.players[ctx.uid]; if (mp && !mp.ready) { sub = 'Place your stickmen'; rank = 0; mine = true; } else sub = `Waiting for ${on} to place theirs`; }
-    else if (g.status === 'playing') { if (g.turn === ctx.uid) { sub = 'Your turn'; rank = 0; mine = true; } else sub = `${on}’s turn`; }
-    else if (g.status === 'finished') { sub = g.winner === ctx.uid ? 'Finished — you won' : `Finished — ${on || 'they'} won`; rank = 4; }
-    return { c, title: on ? `vs ${on}` : `Game ${esc(c)}`, sub, rank, mine, finished: g.status === 'finished', ts: g.createdAt || 0 };
-  }).sort((a, b) => a.rank - b.rank || b.ts - a.ts);
-  el.innerHTML = rows.map(r => `<div class="item row-btn${r.mine ? ' turn' : ''}" data-open="${esc(r.c)}"><div class="grow"><div>${r.title}</div><div class="sub">${r.sub}</div></div>` +
-    (r.finished ? `<button type="button" class="x" data-remove="${esc(r.c)}" aria-label="Remove from list">✕</button>` : `<span class="sub">›</span>`) + `</div>`).join('');
+  const el = $('#games-list'), rows = Object.keys(lobby.games).filter(c => lobby.games[c]).map(gameRow).sort((a, b) => a.rank - b.rank || b.ts - a.ts);
+  const row = r => `<div class="item row-btn${r.mine ? ' turn' : ''}" data-open="${esc(r.c)}"><div class="grow"><div>${r.title}</div><div class="sub">${r.sub}</div></div>` +
+    (r.finished ? `<button type="button" class="x" data-remove="${esc(r.c)}" aria-label="Delete from your list">✕</button>` : `<span class="sub">›</span>`) + `</div>`;
+  const live = rows.filter(r => !r.finished), done = rows.filter(r => r.finished);
+  if (!rows.length) { el.innerHTML = '<div class="empty">No games yet. Challenge a friend below, or make a code to share.</div>'; return; }
+  el.innerHTML = `<h4>In progress (${live.length})</h4><div class="list">${live.length ? live.map(row).join('') : '<div class="empty">Nothing in progress.</div>'}</div>` +
+    (done.length ? `<h4>Finished (${done.length}) <button type="button" class="link" data-clear-finished="1">Delete all</button></h4><div class="list">${done.map(row).join('')}</div>` : '');
 }
 function renderFriends() {
   const fl = $('#friends-list'), rl = $('#requests-list'), fids = Object.keys(lobby.friends);
   fl.innerHTML = fids.length ? fids.map(f => { const fr = lobby.friends[f], onl = !!lobby.presence[f];
-    return `<div class="item"><span class="dot${onl ? ' on' : ''}"></span><div class="grow"><div>${esc(fr.name)}</div><div class="sub">@${esc(fr.username || '')}${onl ? ' · online now' : ''}</div></div><button type="button" class="primary" data-challenge="${esc(f)}">Play</button></div>`; }).join('')
-    : '<div class="empty">No friends added yet — add them by username in the Friends section.</div>';
+    return `<div class="item"><span class="dot${onl ? ' on' : ''}"></span><div class="grow"><div>${esc(fr.name)}</div><div class="sub">@${esc(fr.username || '')}${onl ? ' · online now' : ''}</div></div><button type="button" class="primary" data-challenge="${esc(f)}">Play</button><button type="button" class="x" data-unfriend="${esc(f)}" aria-label="Remove friend">✕</button></div>`; }).join('')
+    : '<div class="empty">No friends yet. Add them by username below.</div>';
   const rids = Object.keys(lobby.requests);
   rl.innerHTML = rids.map(f => { const rq = lobby.requests[f] || {};
     return `<div class="item"><div class="grow"><div>${esc(rq.name || 'Someone')} wants to be friends</div><div class="sub">@${esc(rq.username || '')}</div></div><button type="button" class="primary" data-accept="${esc(f)}">Accept</button><button type="button" class="x" data-decline="${esc(f)}" aria-label="Decline">✕</button></div>`; }).join('');
 }
 $('#games-list').addEventListener('click', async e => {
+  const clr = e.target.closest('[data-clear-finished]');
+  if (clr) {
+    const done = Object.keys(lobby.games).filter(c => lobby.games[c] && lobby.games[c].status === 'finished');
+    overlay(`<h2>Delete ${done.length} finished game${done.length === 1 ? '' : 's'}?</h2><p>They disappear from your list. Your win/loss record keeps them.</p>`, [
+      { label: 'Delete', cls: 'danger', act: async () => { hideOverlay(); const upd = {}; done.forEach(c => { upd[`users/${ctx.uid}/games/${c}`] = null; }); try { await db.ref().update(upd); } catch (err) { setLobbyErr(friendlyDb(err)); } } },
+      { label: 'Keep', cls: 'secondary', act: hideOverlay }]);
+    return;
+  }
   const rm = e.target.closest('[data-remove]');
   if (rm) { e.stopPropagation(); try { await db.ref(`users/${ctx.uid}/games/${rm.dataset.remove}`).remove(); } catch (err) { setLobbyErr(friendlyDb(err)); } return; }
   const op = e.target.closest('[data-open]'); if (op) joinGame(op.dataset.open);
 });
 $('#friends-list').addEventListener('click', async e => {
+  const un = e.target.closest('[data-unfriend]');
+  if (un) {
+    const fuid = un.dataset.unfriend, fr = lobby.friends[fuid]; if (!fr) return;
+    overlay(`<h2>Remove ${esc(fr.name)}?</h2><p>You’ll drop off each other’s friends lists. Games you already have together stay.</p>`, [
+      { label: 'Remove', cls: 'danger', act: async () => { hideOverlay(); try { await db.ref().update({ [`users/${ctx.uid}/friends/${fuid}`]: null, [`users/${fuid}/friends/${ctx.uid}`]: null }); toast('Friend removed.'); } catch (err) { setFriendErr(friendlyDb(err)); } } },
+      { label: 'Keep', cls: 'secondary', act: hideOverlay }]);
+    return;
+  }
   const b = e.target.closest('[data-challenge]'); if (!b) return;
   const fuid = b.dataset.challenge, fr = lobby.friends[fuid]; if (!fr) return;
-  b.disabled = true; setLobbyErr('');
-  try { store = makeOnlineStore(); await store.challenge(fuid, fr.name, readSettings('lob')); enterGame(); }
-  catch (err) { store = null; setLobbyErr(friendlyDb(err)); b.disabled = false; }
+  openSetup(`Challenge ${esc(fr.name)}`, 'Pick a preset or tune the settings, then start. They get the game in their list straight away.', async st => {
+    setLobbyErr('');
+    try { store = makeOnlineStore(); await store.challenge(fuid, fr.name, st); enterGame(); }
+    catch (err) { store = null; setLobbyErr(friendlyDb(err)); }
+  });
 });
 $('#requests-list').addEventListener('click', async e => {
   const acc = e.target.closest('[data-accept]'), dec = e.target.closest('[data-decline]');
@@ -1001,7 +1520,7 @@ $('#requests-list').addEventListener('click', async e => {
 });
 $('#btn-add-friend').addEventListener('click', async () => {
   const inp = $('#inp-friend'), b = $('#btn-add-friend'); setFriendErr(''); b.disabled = true;
-  try { const r = await addFriend(inp.value); inp.value = ''; toast(r === 'accepted' ? 'They had already asked — you’re friends now.' : 'Request sent. They’ll see it in their lobby.'); }
+  try { const r = await addFriend(inp.value); inp.value = ''; toast(r === 'accepted' ? 'They had already asked, so you’re friends now.' : 'Request sent. They’ll see it in their lobby.'); }
   catch (err) { setFriendErr(friendlyDb(err)); }
   b.disabled = false;
 });
@@ -1014,7 +1533,7 @@ async function addFriend(raw) {
   if (!fuid) throw new Error('No one has that username yet.');
   if (lobby.friends[fuid]) throw new Error('You’re already friends.');
   if (lobby.requests[fuid]) { await acceptRequest(fuid); return 'accepted'; }
-  await db.ref(`friendRequests/${fuid}/${ctx.uid}`).set({ name: ctx.name, username: ctx.username || '', ts: firebase.database.ServerValue.TIMESTAMP });
+  await db.ref(`friendRequests/${fuid}/${ctx.uid}`).set({ name: ctx.name, username: ctx.username || '', ts: TS() });
   return 'sent';
 }
 async function acceptRequest(fuid) {
@@ -1038,11 +1557,12 @@ async function joinGame(code) {
   try { store = makeOnlineStore(); await store.join(code); enterGame(); }
   catch (err) { store = null; showLobby(); setLobbyErr(friendlyDb(err)); }
 }
-$('#btn-create').addEventListener('click', async () => {
-  setLobbyErr(''); const b = $('#btn-create'); b.disabled = true;
-  try { store = makeOnlineStore(); await store.create(readSettings('lob')); enterGame(); }
-  catch (err) { store = null; setLobbyErr(friendlyDb(err)); }
-  b.disabled = false;
+$('#btn-create').addEventListener('click', () => {
+  openSetup('New game with a code', 'Anyone with the code or link can join, friend or not.', async st => {
+    setLobbyErr('');
+    try { store = makeOnlineStore(); await store.create(st); enterGame(); }
+    catch (err) { store = null; setLobbyErr(friendlyDb(err)); }
+  });
 });
 $('#btn-join').addEventListener('click', () => { const c = $('#inp-code').value.trim().toUpperCase(); if (c.length < 5) { setLobbyErr('Enter the 5-character game code.'); return; } joinGame(c); });
 $('#inp-code').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-join').click(); });
@@ -1053,7 +1573,7 @@ async function claimUsername(raw) {
   const key = cleanUsername(raw);
   if (!USERNAME_RE.test(key)) throw new Error('Usernames are 3–15 letters, numbers or underscores.');
   const res = await db.ref('usernames/' + key).transaction(cur => { if (cur === null || cur === ctx.uid) return ctx.uid; return; });
-  if (!res.committed) throw new Error('That username is taken — try another.');
+  if (!res.committed) throw new Error('That username is taken. Try another.');
   if (ctx.username && ctx.username !== key) db.ref('usernames/' + ctx.username).remove().catch(() => {});
   await db.ref(`profiles/${ctx.uid}`).update({ name: ctx.name, username: key });
   ctx.username = key; renderLobbyHeader();
@@ -1100,10 +1620,11 @@ $('#form-up').addEventListener('submit', async e => {
   try { await auth.createUserWithEmailAndPassword(f.email.value.trim(), f.password.value); }
   catch (err) { pendingSignup = null; setAuthErr(friendlyAuth(err)); }
 });
-$('#btn-forgot').addEventListener('click', async () => {
-  const email = $('#form-in').email.value.trim();
-  if (!email) { setAuthErr('Type your email above first, then tap Forgot password.'); return; }
-  try { await auth.sendPasswordResetEmail(email); toast('Password reset email sent.'); } catch (err) { setAuthErr(friendlyAuth(err)); }
+$('#btn-forgot').addEventListener('click', () => {
+  const typed = $('#form-in').email.value.trim();
+  overlay(`<h2>Reset your password</h2><p>We’ll email you a link to set a new one.</p><input id="inp-reset" type="email" placeholder="Your email" autocomplete="email" value="${esc(typed)}"><div id="reset-err" class="err"></div>`, [
+    { label: 'Send reset email', act: async () => { const email = $('#inp-reset').value.trim(); if (!email) { $('#reset-err').textContent = 'Type your email first.'; return; } try { await auth.sendPasswordResetEmail(email); hideOverlay(); toast('Reset email sent. Check your inbox (and spam).'); } catch (err) { $('#reset-err').textContent = friendlyAuth(err); } } },
+    { label: 'Cancel', cls: 'secondary', act: hideOverlay }]);
 });
 
 const FB_OK = typeof firebase !== 'undefined' && firebaseConfig.apiKey && !/PASTE/.test(firebaseConfig.apiKey);
@@ -1129,7 +1650,7 @@ if (!auth) {
 }
 
 // Small debug handle (handy in the browser console): FoldPress.state(), FoldPress.aimAt(x, y), FoldPress.act('fire')
-window.FoldPress = { state: () => ({ game, secret, placement, aim, animating, pendingReveal, revealed: [...revealed], ctx: Object.assign({}, ctx) }), aimAt: (x, y) => { aim = { x, y }; render(); }, act: a => doAct(a), startLocal, showPass };
+window.FoldPress = { state: () => ({ game, secret, placement, aim, animating, pendingReveal, revealed: [...revealed], ctx: Object.assign({}, ctx) }), aimAt: (x, y) => { aim = { x, y }; render(); }, act: a => doAct(a), startLocal, showPass, shotAccuracy };
 })();
 </script>
 </body>
