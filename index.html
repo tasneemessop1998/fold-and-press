@@ -125,6 +125,29 @@ select option{color:#111}
 .srow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--card-line);text-align:left}
 .srow:last-child{border-bottom:0}
 .srow .seg{min-width:150px}
+.me .av,.strip .av,#lobby-av{cursor:pointer}
+.rankhead{display:flex;align-items:center;gap:14px;text-align:left;margin:6px 0 12px}
+.rankhead b{font-family:'Patrick Hand',cursive;font-size:1.5rem;font-weight:400;display:block;line-height:1.1}
+.rankhead .chips{gap:5px}
+.rankhead .chip{padding:3px 9px;font-size:.78rem}
+.rankhead .chip b{font-family:'Nunito',sans-serif;font-size:.85rem;display:inline;line-height:1}
+.nextbox{background:rgba(0,0,0,.22);border:1px solid var(--card-line);border-radius:16px;padding:12px 14px;text-align:left;margin-bottom:10px}
+:root[data-theme="light"] .nextbox{background:rgba(255,255,255,.6)}
+.nextbox ul{margin:8px 0 0;padding-left:18px;color:var(--muted);line-height:1.5}
+.nextbox .bar{height:10px;border-radius:999px;background:rgba(0,0,0,.3);overflow:hidden;margin-top:8px}
+:root[data-theme="light"] .nextbox .bar{background:rgba(0,0,0,.1)}
+.nextbox .bar div{height:100%;background:linear-gradient(90deg,#ffd45c,var(--accent));border-radius:999px;transition:width .6s ease}
+.ranks{display:flex;flex-direction:column;gap:6px;text-align:left}
+.rank{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:1px solid transparent;opacity:.75}
+.rank.on{border-color:var(--accent);background:rgba(245,194,66,.12);opacity:1}
+.rank.done{opacity:.95}
+.rank .grow{flex:1;min-width:0}
+.rank b{font-family:'Patrick Hand',cursive;font-size:1.2rem;font-weight:400;display:block;line-height:1.1}
+.rank span{display:block;font-size:.82rem;color:var(--muted)}
+.rank small{display:block;font-size:.75rem;color:var(--accent);margin-top:2px}
+:root[data-theme="light"] .rank small{color:#8a6410}
+.rank em{font-style:normal;font-weight:800;color:var(--accent);font-size:.8rem}
+:root[data-theme="light"] .rank em{color:#8a6410}
 /* ---- game screen: the paper fills everything between the strips ---- */
 #screen-game{padding:0;overflow:hidden;user-select:none;-webkit-user-select:none;position:relative}
 #screen-game.active{display:flex;flex-direction:column;height:100vh;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:0}
@@ -232,9 +255,9 @@ select option{color:#111}
 @keyframes floatDown{0%{opacity:0;transform:translateY(-20px) scale(.4)}12%{opacity:1;transform:translateY(0) scale(1.15)}22%{transform:translateY(6px) scale(1)}100%{opacity:0;transform:translateY(150px) rotate(8deg) scale(1.05)}}
 /* chat: free-floating text over the screen, no box */
 .chatlog{position:absolute;left:12px;right:30%;bottom:calc(112px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;justify-content:flex-end;gap:4px;pointer-events:none;z-index:8}
-.msg{font-weight:800;font-size:.95rem;line-height:1.25;color:#1a1a1a;text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 2px 6px rgba(0,0,0,.35);animation:msgIn .3s ease-out both,msgOut .6s ease-in forwards 9s;word-break:break-word}
-.msg b{color:var(--ink);margin-right:4px}
-.msg.mine b{color:#1d5fa8}
+.msg{display:inline-block;align-self:flex-start;max-width:100%;background:rgba(8,20,18,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.12);border-radius:14px 14px 14px 4px;padding:6px 11px;font-weight:700;font-size:.92rem;line-height:1.3;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);animation:msgIn .3s ease-out both,msgOut .6s ease-in forwards 9s;word-break:break-word}
+.msg b{color:var(--accent);margin-right:5px;font-weight:800}
+.msg.mine b{color:#8fd6ff}
 @keyframes msgIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
 @keyframes msgOut{to{opacity:0}}
 .chatbox{position:absolute;left:0;right:0;bottom:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));background:var(--box);border-top:1px solid var(--card-line);display:flex;gap:8px;z-index:12;animation:trayIn .2s ease-out both}
@@ -454,12 +477,13 @@ const PRESETS = {
 };
 // Avatar tiers, judged on wins and win ratio. Order matters: first match wins.
 const TIERS = [
-  { id: 'legend', label: 'Legend', test: s => s.wins >= 20 && s.ratio >= 0.7 },
-  { id: 'sharp', label: 'Sharpshooter', test: s => s.wins >= 8 && s.ratio >= 0.6 },
-  { id: 'marks', label: 'Marksman', test: s => s.wins >= 3 && s.ratio >= 0.5 },
-  { id: 'splat', label: 'Ink-stained', test: s => s.games >= 5 && s.ratio < 0.3 },
-  { id: 'rookie', label: 'Rookie', test: () => true }
+  { id: 'legend', label: 'Legend', wins: 20, ratio: 0.7, blurb: 'The crown. Feared by all stickmen.', test: s => s.wins >= 20 && s.ratio >= 0.7 },
+  { id: 'sharp', label: 'Sharpshooter', wins: 8, ratio: 0.6, blurb: 'Shades on, star earned.', test: s => s.wins >= 8 && s.ratio >= 0.6 },
+  { id: 'marks', label: 'Marksman', wins: 3, ratio: 0.5, blurb: 'Got the cap. Knows which way the page folds.', test: s => s.wins >= 3 && s.ratio >= 0.5 },
+  { id: 'splat', label: 'Ink-stained', blurb: 'Lost most of your first five. Win your way out.', test: s => s.games >= 5 && s.ratio < 0.3 },
+  { id: 'rookie', label: 'Rookie', blurb: 'Everyone starts here.', test: () => true }
 ];
+const LADDER = ['rookie', 'marks', 'sharp', 'legend'];   // the climb; Ink-stained sits off to the side
 const REACTIONS = ['shock', 'sad', 'happy', 'smirk', 'angry', 'love'];
 
 /* ---------- small helpers ---------- */
@@ -833,6 +857,7 @@ const bonusOn = () => visibleMode() && settings().hsBonus !== false;
 const movesLeft = uid => Math.max(0, movesAllowed() - ((players()[uid] || {}).movesUsed || 0));
 const hidesLeft = uid => Math.max(0, hidesAllowed() - ((players()[uid] || {}).hidesUsed || 0));
 const hasBonus = uid => !!((players()[uid] || {}).bonusHide) && bonusOn();
+const oppDeciding = () => { const o = oppUid(); return !!(o && hasBonus(o) && game.status === 'playing'); };   // they got a headshot: nobody shoots until they use or skip the free hide
 const shotsBy = (uid, onlyRevealed) => Object.keys((game && game.shots) || {}).sort().filter(id => !onlyRevealed || revealed.has(id)).map(id => game.shots[id]).filter(s => s.by === uid && s.resolved);
 // A player's turns: resolved shots plus turn-costing powers. `seen` counts only what this screen has watched happen.
 function turnsBy(uid, seen) {
@@ -1092,7 +1117,9 @@ function offerReplay(items) {
 function skipReplay(items) {
   items.forEach(it => { if (it.type === 'shot') { revealed.add(it.id); markSeen(it.id); } else { seenEvents.add(it.id); markSeenEv(it.id); } });
   holdFolds = false; replay = null; render(); nextFold();
-  if (game.status === 'finished') setTimeout(endSequence, 400); else if (turnUid() === ctx.uid && !coinPending()) announce(yourTurnText(), 'turn');
+  if (game.status === 'finished') setTimeout(endSequence, 400);
+  else if (hasBonus(ctx.uid)) { pickMode = 'bonus'; selectedFig = null; announce('Free invisibility!', 'ghost', 1800); render(); }
+  else if (turnUid() === ctx.uid && !coinPending() && !oppDeciding()) announce(yourTurnText(), 'turn');
 }
 function beginReplay(items) {
   replay = { items, i: 0 }; holdFolds = false; setFoldSpeed(REPLAY_FOLD_MS);
@@ -1114,7 +1141,8 @@ function endReplay() {
   replay = null; setFoldSpeed(FOLD_MS); render(); nextFold();
   if (game.status === 'finished') { setTimeout(endSequence, 500); return; }
   announce('Replay over', 'info', 1100);
-  if (turnUid() === ctx.uid) announce(yourTurnText(), 'turn');
+  if (hasBonus(ctx.uid)) { pickMode = 'bonus'; selectedFig = null; announce('Free invisibility!', 'ghost', 1800); render(); }
+  else if (turnUid() === ctx.uid && !oppDeciding()) announce(yourTurnText(), 'turn');
 }
 
 /* press meter: a timed press decides how far the page slips */
@@ -1171,6 +1199,10 @@ function onGameUpdate(g) {
     setTimeout(() => { Promise.resolve(store && store.start()).catch(e => toast(friendlyDb(e))).finally(() => { startRequested = false; }); }, 0);
   }
   maybeResolve(); maybeRecordResult(); handleReactions(g); handleChat(g);
+  // A headshot bonus must be used or skipped before play goes on: re-prompt the holder, and tell the other player when it's settled.
+  if (hasBonus(ctx.uid) && !pickMode && g.status === 'playing' && settled() && !holdFolds && !overlayOpen()) { pickMode = 'bonus'; selectedFig = null; }
+  const o = oppUid();
+  if (prev && o && prev.players && prev.players[o] && prev.players[o].bonusHide && !(g.players[o] || {}).bonusHide && g.status === 'playing' && g.turn === ctx.uid && !replay && ctx.mode === 'online') announce(yourTurnText(), 'turn');
   if (prev && prev.status !== g.status) onStatusChange(prev.status, g.status);
   if (prev && g.coin && (!prev.coin || prev.coin.n !== g.coin.n || (!prev.coin.first && g.coin.first))) handleCoin(g);
   paperEl.classList.toggle('show-crease', !!settings().crease);
@@ -1242,6 +1274,7 @@ function reveal(id) {
   if (game.status === 'finished') { if (!replay) setTimeout(endSequence, 900); return; }
   if (replay) return;
   if (mine && headshot && hasBonus(ctx.uid)) { pickMode = 'bonus'; selectedFig = null; announce('Free invisibility!', 'ghost', 1800); render(); }
+  else if (oppDeciding()) announce(`${on} gets a free hide`, 'ghost', 1600);
   else if (turnUid() === ctx.uid) announce(yourTurnText(), 'turn', 1400);
 }
 function headshotFx() {
@@ -1359,7 +1392,8 @@ function statusHTML() {
       if (myPending()) return `Ink’s on the paper. ${on} will see it unfold when they next open the game. Safe to close and come back later.`;
       if (pickMode === 'move') return pendingMove ? 'Move it there? This uses your turn.' : '<b>Relocate.</b> Drag one of your stickmen to a new spot. This uses your turn.';
       if (pickMode === 'hide') return selectedFig ? `Make this one invisible for ${on}’s next ${HIDE_TURNS} turns? This uses your turn.` : `<b>Invisibility.</b> Tap one of your stickmen to hide it from ${on} for ${HIDE_TURNS} turns. This uses your turn.`;
-      if (pickMode === 'bonus') return selectedFig ? `Hide this one for ${on}’s next ${HIDE_TURNS} turns? It’s free.` : `<b>Headshot bonus!</b> Tap one of your stickmen to hide it from ${on} for ${HIDE_TURNS} turns. Free.`;
+      if (pickMode === 'bonus') return selectedFig ? `Hide this one for ${on}’s next ${HIDE_TURNS} turns? It’s free.` : `<b>Headshot bonus!</b> Tap one of your stickmen to hide it from ${on} for ${HIDE_TURNS} turns, or skip. ${on} waits until you decide.`;
+      if (oppDeciding()) return `${on} got a headshot and may hide a stickman. Your turn starts once they decide${ctx.mode === 'online' ? '. Safe to close and come back later' : ''}.`;
       if (turnUid() === ctx.uid) {
         if (aim) return 'Ink’s wet. Tap <b>Fold &amp; press</b> to transfer it.';
         const powers = [movesLeft(ctx.uid) ? `${movesLeft(ctx.uid)} relocate${movesLeft(ctx.uid) === 1 ? '' : 's'}` : '', hidesLeft(ctx.uid) ? `${hidesLeft(ctx.uid)} hide${hidesLeft(ctx.uid) === 1 ? '' : 's'}` : ''].filter(Boolean).join(', ');
@@ -1388,12 +1422,12 @@ function renderActions() {
     if (meter) a.push(btn('Press!', 'press', 'primary'));
     else if (pickMode === 'move') { a.push(btn('Cancel', 'cancelpick', 'secondary')); if (pendingMove) a.push(btn('Move it', 'confirmmove', 'primary')); }
     else if (pickMode === 'hide') { a.push(btn('Cancel', 'cancelpick', 'secondary')); if (selectedFig) a.push(btn('Hide it', 'confirmhide', 'primary')); }
-    else if (pickMode === 'bonus') { a.push(btn('Later', 'cancelpick', 'secondary')); if (selectedFig) a.push(btn('Hide it (free)', 'confirmbonus', 'primary')); }
+    else if (pickMode === 'bonus') { a.push(btn('Skip it', 'skipbonus', 'secondary')); if (selectedFig) a.push(btn('Hide it (free)', 'confirmbonus', 'primary')); }
+    else if (oppDeciding()) { /* nothing to do until they decide */ }
     else if (turnUid() === ctx.uid) {
       if (aim) { a.push(btn('Clear', 'clear', 'secondary')); a.push(btn('Fold &amp; press', 'fire', 'primary')); }
-      else { if (movesLeft(ctx.uid)) a.push(btn(`${I.run}Relocate <small>${movesLeft(ctx.uid)}</small>`, 'pickmove', 'secondary')); if (hidesLeft(ctx.uid)) a.push(btn(`${I.ghost}Hide <small>${hidesLeft(ctx.uid)}</small>`, 'pickhide', 'secondary')); if (hasBonus(ctx.uid)) a.push(btn(`${I.ghost}Free hide`, 'pickbonus', 'secondary')); }
+      else { if (movesLeft(ctx.uid)) a.push(btn(`${I.run}Relocate <small>${movesLeft(ctx.uid)}</small>`, 'pickmove', 'secondary')); if (hidesLeft(ctx.uid)) a.push(btn(`${I.ghost}Hide <small>${hidesLeft(ctx.uid)}</small>`, 'pickhide', 'secondary')); }
     }
-    else if (hasBonus(ctx.uid)) a.push(btn(`${I.ghost}Use headshot bonus`, 'pickbonus', 'secondary'));
     else if (ctx.mode === 'local' && players()[turnUid()]) a.push(btn(`Pass to ${esc(players()[turnUid()].name)}`, 'pass', 'primary'));
   } else if (game.status === 'finished' && settled()) {
     a.push(btn('Rematch', 'rematch', 'primary'));
@@ -1432,7 +1466,8 @@ async function doAct(act, b) {
     else if (act === 'pickmove') { pickMode = 'move'; aim = null; selectedFig = null; pendingMove = null; render(); }
     else if (act === 'pickhide') { pickMode = 'hide'; aim = null; selectedFig = null; render(); }
     else if (act === 'pickbonus') { pickMode = 'bonus'; aim = null; selectedFig = null; render(); }
-    else if (act === 'cancelpick') { pickMode = null; selectedFig = null; pendingMove = null; render(); }
+    else if (act === 'cancelpick') { if (pickMode === 'bonus') return; pickMode = null; selectedFig = null; pendingMove = null; render(); }
+    else if (act === 'skipbonus') { pickMode = null; selectedFig = null; if (b) b.disabled = true; render(); await store.dropBonus(); announce('Bonus skipped', 'info', 1100); }
     else if (act === 'confirmmove') { if (!pendingMove) return; const m = pendingMove; pickMode = null; pendingMove = null; if (b) b.disabled = true; render(); sfx.slide(); await store.move(m.id, m.x, m.y); }
     else if (act === 'confirmhide' || act === 'confirmbonus') { if (!selectedFig) return; const id = selectedFig, free = act === 'confirmbonus'; pickMode = null; selectedFig = null; if (b) b.disabled = true; render(); sfx.ghost(); await store.hide(id, free); }
   } catch (err) { toast(friendlyDb(err)); render(); }
@@ -1594,6 +1629,7 @@ svgBot.addEventListener('pointerdown', e => {
   } else if (pickMode) {
     return;
   } else if (game.status === 'playing' && turnUid() === ctx.uid && settled() && !myPending() && !meter && !coinPending()) {
+    if (oppDeciding()) { toast(`${oppName()} is deciding on their headshot bonus first.`); return; }
     if (pt.y < HALF_H) { toast('Aim on your own half. The ink folds over onto theirs.'); return; }
     const vx = clamp(pt.x, 12, SHEET_W - 12), vy = clamp(pt.y, HALF_H + 12, SHEET_H - 12), l = V(vx, vy);
     aim = { x: Math.round(l[0]), y: Math.round(l[1]) }; liveShot = null; render();
@@ -1709,15 +1745,22 @@ function renderRecord() {
 function showStats() {
   const { rs, wins, losses, avg, best } = recordSummary();
   const list = rs.slice(0, 12).map(r => `<li><span>vs ${esc(r.opp || '?')}${r.forfeit ? ' (forfeit)' : ''}</span><span class="${r.result === 'win' ? 'w' : 'l'}">${r.result === 'win' ? 'won' : 'lost'} · ${r.shots ? (r.acc || 0) + '%' : '–'}</span></li>`).join('');
-  overlay(`<h2>Your record</h2><div style="margin:8px 0">${avatarSVG(ctx.tier, 72)}<div class="tier">${tierLabel(ctx.tier)}</div></div><div class="bigstat"><div><b>${wins}</b><span>wins</span></div><div><b>${losses}</b><span>losses</span></div><div><b>${avg == null ? '–' : avg + '%'}</b><span>avg accuracy</span></div><div><b>${best == null ? '–' : best + '%'}</b><span>best game</span></div></div><p class="hint">Rookie → Marksman (3 wins, half of them) → Sharpshooter (8 wins, 60%) → Legend (20 wins, 70%). Lose most of your first five and you’re Ink-stained until you climb out.</p><ul class="results">${list || '<li>No finished games yet.</li>'}</ul>`,
+  overlay(`<h2>Your record</h2><div style="margin:8px 0"><span id="h-av" role="button" style="display:inline-block">${avatarSVG(ctx.tier, 72)}</span><div class="tier">${tierLabel(ctx.tier)}</div></div><div class="bigstat"><div><b>${wins}</b><span>wins</span></div><div><b>${losses}</b><span>losses</span></div><div><b>${avg == null ? '–' : avg + '%'}</b><span>avg accuracy</span></div><div><b>${best == null ? '–' : best + '%'}</b><span>best game</span></div></div><p class="hint">Tap your character to see the ranks and what the next one needs.</p><ul class="results">${list || '<li>No finished games yet.</li>'}</ul>`,
     [{ label: 'Close', cls: 'secondary', act: hideOverlay }]);
+  const hav = $('#h-av'); if (hav) hav.onclick = () => showRanks(ctx.stats);
 }
 function gameRow(c) {
   const g = lobby.games[c], other = Object.keys(g.players || {}).find(u => u !== ctx.uid), op = other ? g.players[other] : null, on = op ? esc(op.name) : null;
   let sub = '', rank = 2, mine = false;
   if (g.status === 'lobby') { sub = 'Waiting for someone to join with the code'; rank = 3; }
   else if (g.status === 'placing') { const mp = g.players[ctx.uid]; if (mp && !mp.ready) { sub = 'Place your stickmen'; rank = 0; mine = true; } else sub = `Waiting for ${on} to place theirs`; }
-  else if (g.status === 'playing') { const c2 = g.coin; if (c2 && !c2.first) { if (c2.caller === ctx.uid) { sub = 'Call the coin toss'; rank = 0; mine = true; } else sub = `${on} is calling the coin`; } else if (g.turn === ctx.uid) { sub = 'Your turn'; rank = 0; mine = true; } else sub = `${on}’s turn`; }
+  else if (g.status === 'playing') {
+    const c2 = g.coin, mp = g.players[ctx.uid] || {};
+    if (c2 && !c2.first) { if (c2.caller === ctx.uid) { sub = 'Call the coin toss'; rank = 0; mine = true; } else sub = `${on} is calling the coin`; }
+    else if (mp.bonusHide) { sub = 'Use your headshot bonus'; rank = 0; mine = true; }
+    else if (op && op.bonusHide) sub = `Waiting for ${on}’s headshot bonus`;
+    else if (g.turn === ctx.uid) { sub = 'Your turn'; rank = 0; mine = true; } else sub = `${on}’s turn`;
+  }
   else if (g.status === 'finished') { sub = g.forfeitBy ? (g.forfeitBy === ctx.uid ? 'You forfeited' : `${on || 'They'} forfeited, you won`) : (g.winner === ctx.uid ? 'You won' : `${on || 'They'} won`); rank = 4; }
   return { c, av: avatarSVG(op ? op.tier : 'rookie', 34), title: on ? `vs ${on}` : `Game ${esc(c)}`, sub, rank, mine, finished: g.status === 'finished', ts: g.createdAt || 0 };
 }
@@ -1731,7 +1774,7 @@ function renderGamesList() {
 function renderFriends() {
   const fl = $('#friends-list'), rl = $('#requests-list'), fids = Object.keys(lobby.friends);
   fl.innerHTML = fids.length ? fids.map(f => { const fr = lobby.friends[f], onl = !!lobby.presence[f], st = lobby.fstats[f], tier = tierOf(st);
-    return `<div class="item"><span class="av">${avatarSVG(tier, 36)}</span><div class="grow"><div>${esc(fr.name)} <span class="dot${onl ? ' on' : ''}" style="display:inline-block;vertical-align:middle"></span></div><div class="sub">@${esc(fr.username || '')} · ${tierLabel(tier)}${st ? ` · ${st.wins || 0}W ${st.losses || 0}L` : ''}${onl ? ' · online' : ''}</div></div><button type="button" class="primary" data-challenge="${esc(f)}">Play</button><button type="button" class="x" data-unfriend="${esc(f)}" aria-label="Remove friend">✕</button></div>`; }).join('')
+    return `<div class="item"><span class="av" data-uid="${esc(f)}" role="button">${avatarSVG(tier, 36)}</span><div class="grow"><div>${esc(fr.name)} <span class="dot${onl ? ' on' : ''}" style="display:inline-block;vertical-align:middle"></span></div><div class="sub">@${esc(fr.username || '')} · ${tierLabel(tier)}${st ? ` · ${st.wins || 0}W ${st.losses || 0}L` : ''}${onl ? ' · online' : ''}</div></div><button type="button" class="primary" data-challenge="${esc(f)}">Play</button><button type="button" class="x" data-unfriend="${esc(f)}" aria-label="Remove friend">✕</button></div>`; }).join('')
     : '<div class="empty">No friends yet. Add them by username below.</div>';
   rl.innerHTML = Object.keys(lobby.requests).map(f => { const rq = lobby.requests[f] || {};
     return `<div class="item"><div class="grow"><div>${esc(rq.name || 'Someone')} wants to be friends</div><div class="sub">@${esc(rq.username || '')}</div></div><button type="button" class="primary" data-accept="${esc(f)}">Accept</button><button type="button" class="x" data-decline="${esc(f)}" aria-label="Decline">✕</button></div>`; }).join('');
@@ -1815,10 +1858,46 @@ $('#btn-create').addEventListener('click', () => {
 $('#btn-join').addEventListener('click', () => { const c = $('#inp-code').value.trim().toUpperCase(); if (c.length < 5) { setLobbyErr('Enter the 5-character game code.'); return; } joinGame(c); });
 $('#inp-code').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-join').click(); });
 
+/* ---------- rank sheet: where you are on the ladder and what the next character needs ---------- */
+function rankProgress(stats) {
+  const st = Object.assign({ wins: 0, losses: 0, games: 0 }, stats || {}); st.games = st.games || (st.wins + st.losses); st.ratio = st.games ? st.wins / st.games : 0;
+  const cur = tierOf(st), pos = LADDER.indexOf(cur), nextId = cur === 'splat' ? 'marks' : (pos >= 0 && pos < LADDER.length - 1 ? LADDER[pos + 1] : null);
+  const next = nextId ? TIERS.find(t => t.id === nextId) : null;
+  const needs = [];
+  let pct = 100;
+  if (next) {
+    const winsNeed = Math.max(0, next.wins - st.wins);
+    // wins still needed to lift the ratio to the bar, assuming no more losses
+    const ratioWins = st.ratio >= next.ratio ? 0 : Math.max(0, Math.ceil((next.ratio * st.games - st.wins) / (1 - next.ratio)));
+    if (winsNeed > 0) needs.push(`${winsNeed} more win${winsNeed === 1 ? '' : 's'} (${st.wins} of ${next.wins})`);
+    if (st.ratio < next.ratio) needs.push(`win ${Math.round(next.ratio * 100)}% of your games (you’re at ${st.games ? Math.round(st.ratio * 100) : 0}%${ratioWins ? `, about ${ratioWins} straight win${ratioWins === 1 ? '' : 's'} would do it` : ''})`);
+    const winPart = Math.min(1, st.wins / next.wins), ratioPart = next.ratio ? Math.min(1, st.ratio / next.ratio) : 1;
+    pct = Math.round(Math.min(winPart, ratioPart) * 100);
+  }
+  return { st, cur, next, needs, pct };
+}
+function showRanks(stats, who) {
+  const { st, cur, next, needs, pct } = rankProgress(stats);
+  const mine = !who;
+  const row = id => { const t = TIERS.find(x => x.id === id), on = id === cur, done = LADDER.indexOf(id) >= 0 && LADDER.indexOf(id) < LADDER.indexOf(cur);
+    const req = t.wins ? `${t.wins} wins, ${Math.round(t.ratio * 100)}% won` : (id === 'splat' ? 'under 30% after 5 games' : 'start here');
+    return `<div class="rank${on ? ' on' : ''}${done ? ' done' : ''}">${avatarSVG(id, 44)}<div class="grow"><b>${t.label}</b><span>${t.blurb}</span><small>${req}</small></div>${on ? '<em>you</em>' : done ? '<em>✓</em>' : ''}</div>`; };
+  const ladder = LADDER.map(row).join('') + `<h4 style="margin-top:10px">The other way</h4>` + row('splat');
+  const head = `<div class="rankhead">${avatarSVG(cur, 84)}<div><b>${esc(who || ctx.name || '')}</b><span class="tier">${tierLabel(cur)}</span><div class="chips" style="margin-top:6px"><span class="chip"><b>${st.wins}</b> won</span><span class="chip"><b>${st.losses}</b> lost</span><span class="chip"><b>${st.games ? Math.round(st.ratio * 100) : 0}%</b> win rate</span></div></div></div>`;
+  const nextBox = next
+    ? `<div class="nextbox"><div class="row between"><span>Next: <b>${next.label}</b></span><span class="sub">${pct}%</span></div><div class="bar"><div style="width:${pct}%"></div></div><ul>${needs.length ? needs.map(n => `<li>${n}</li>`).join('') : '<li>One more finished game and you’re there.</li>'}</ul></div>`
+    : `<div class="nextbox"><b>Top of the ladder.</b> Keep the crown by keeping your win rate above 70%.</div>`;
+  overlay(`<h2>${mine ? 'Your rank' : esc(who) + '’s rank'}</h2>${head}${mine ? nextBox : ''}<div class="ranks">${ladder}</div>`, [{ label: 'Close', cls: 'secondary', act: hideOverlay }], { wide: true });
+}
+$('#lobby-av').addEventListener('click', () => showRanks(ctx.stats));
+$('#strip-me').addEventListener('click', () => { if (ctx.mode === 'online') showRanks(ctx.stats); });
+$('#strip-opp').addEventListener('click', () => { const o = opp(); if (ctx.mode === 'online' && o) showRanks(lobby.fstats[oppUid()] || null, o.name); });
+$('#friends-list').addEventListener('click', e => { const av = e.target.closest('.av[data-uid]'); if (av) { e.stopPropagation(); const f = lobby.friends[av.dataset.uid]; showRanks(lobby.fstats[av.dataset.uid] || null, f ? f.name : 'Friend'); } });
+
 /* ---------- app settings sheet ---------- */
 function openAppSettings() {
   const seg = (id, opts, cur) => `<div class="seg" id="${id}">${opts.map(([v, l]) => `<button type="button" class="${v === cur ? 'on' : ''}" data-v="${v}">${l}</button>`).join('')}</div>`;
-  const prof = ctx.authUid ? `<div class="me" style="margin-bottom:6px"><span class="av">${avatarSVG(ctx.tier, 56)}</span><div class="who"><b>${esc(ctx.name || '')}</b><span class="uname">${ctx.username ? '@' + esc(ctx.username) : ''}</span><br><span class="tier">${tierLabel(ctx.tier)}</span></div></div>` : '';
+  const prof = ctx.authUid ? `<div class="me" style="margin-bottom:6px"><span class="av" id="s-av" role="button">${avatarSVG(ctx.tier, 56)}</span><div class="who"><b>${esc(ctx.name || '')}</b><span class="uname">${ctx.username ? '@' + esc(ctx.username) : ''}</span><br><span class="tier">${tierLabel(ctx.tier)}</span></div></div>` : '';
   overlay(`<h2>Settings</h2>${prof}` +
     `<div class="srow"><span>Theme</span>${seg('s-theme', [['dark', 'Dark'], ['light', 'Light']], prefs.theme)}</div>` +
     `<div class="srow"><span>Sound</span>${seg('s-sound', [['1', 'On'], ['0', 'Off']], prefs.sound ? '1' : '0')}</div>` +
@@ -1830,6 +1909,7 @@ function openAppSettings() {
   wire('s-theme', v => { prefs.theme = v; savePrefs(); });
   wire('s-sound', v => { prefs.sound = v === '1'; savePrefs(); renderMute(); });
   wire('s-haptic', v => { prefs.haptics = v === '1'; savePrefs(); });
+  const sav = $('#s-av'); if (sav) sav.onclick = () => showRanks(ctx.stats);
   const sv = $('#s-name-save'); if (sv) sv.onclick = async () => { const n = $('#s-name').value.trim(); if (!n) return; try { await db.ref(`profiles/${ctx.uid}/name`).set(n); await auth.currentUser.updateProfile({ displayName: n }); ctx.name = ctx.authName = n; renderLobbyHeader(); toast('Name saved. New games will use it.'); } catch (e) { toast(friendlyDb(e)); } };
 }
 $('#btn-settings').addEventListener('click', openAppSettings);
