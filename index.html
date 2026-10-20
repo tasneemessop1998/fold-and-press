@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fold &amp; Press — the stickman paper battle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --desk:#214440; --desk-deep:#142e2b;
+  --text:#f3efe4; --muted:#aebfb9;
+  --card:rgba(255,255,255,.07); --card-line:rgba(255,255,255,.16);
+  --accent:#f5c242; --accent-ink:#231d08;
+  --ink:#c41e1e; --pencil:#2d2d2d; --paper:#fbf8ec;
+  --fold-ms:2600ms;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Nunito',system-ui,-apple-system,sans-serif;color:var(--text);background:radial-gradient(900px 600px at 50% -20%,#2f5f59,var(--desk) 55%,var(--desk-deep));min-height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{font-family:'Patrick Hand','Comic Sans MS',cursive;font-weight:400;margin:0;letter-spacing:.3px}
+h1{font-size:2.7rem;line-height:1}
+h2{font-size:1.8rem}
+h3{font-size:1.3rem;color:var(--muted);margin:20px 0 8px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 18px;font-weight:700;transition:transform .08s ease;touch-action:manipulation}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.5;cursor:default;transform:none}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink)}
+button.secondary{background:var(--card);color:var(--text);border:1px solid var(--card-line)}
+button.ghost{background:transparent;color:var(--muted);padding:8px 10px}
+button.link{background:none;color:var(--muted);text-decoration:underline;padding:4px 2px;font-weight:600}
+button.wide{width:100%}
+input,select{font:inherit;width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--card-line);background:rgba(0,0,0,.25);color:var(--text);outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+select option{color:#111}
+.screen{display:none;min-height:100%;padding:16px}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+.card{width:100%;max-width:440px;background:var(--card);border:1px solid var(--card-line);border-radius:20px;padding:22px;margin:auto 0;backdrop-filter:blur(6px)}
+.card.lobby{margin:0 0 20px}
+.logo{text-align:center}
+.tag{color:var(--muted);text-align:center;margin:6px 0 18px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;background:rgba(0,0,0,.25);padding:4px;border-radius:12px}
+.tab{flex:1;background:transparent;color:var(--muted);padding:9px}
+.tab.active{background:var(--card);color:var(--text)}
+.aform{display:flex;flex-direction:column;gap:10px}
+.err{color:#ff9a9a;min-height:1.2em;margin-top:8px;font-size:.92rem}
+.note{background:rgba(245,194,66,.12);border:1px solid rgba(245,194,66,.4);border-radius:12px;padding:10px 12px;font-size:.92rem;margin-bottom:12px;line-height:1.45}
+.note code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:5px}
+.or{text-align:center;color:var(--muted);margin:14px 0;font-size:.85rem;letter-spacing:.15em}
+.how{color:var(--muted);font-size:.9rem;margin:16px 0 0;line-height:1.45}
+.hint{color:var(--muted);font-size:.88rem;margin:8px 0 10px;line-height:1.4}
+.uname{color:var(--muted);font-size:.9rem}
+.row{display:flex;gap:10px;align-items:flex-end}
+.row.between{align-items:center;justify-content:space-between}
+.row>input{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2 label{font-size:.9rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;text-align:left}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;text-align:left}
+.item.turn{border-color:var(--accent)}
+.item.row-btn{cursor:pointer}
+.item .grow{flex:1;min-width:0}
+.item .sub{color:var(--muted);font-size:.85rem}
+.item.turn .sub{color:var(--accent)}
+.item button{padding:8px 12px;font-size:.9rem;min-width:0}
+.item button.x{background:none;color:var(--muted);padding:4px 8px;font-size:1.1rem}
+.dot{width:9px;height:9px;border-radius:50%;background:#5a6d68;flex:none}
+.dot.on{background:#5ad67a;box-shadow:0 0 0 3px rgba(90,214,122,.25)}
+.empty{color:var(--muted);font-size:.9rem;padding:6px 2px}
+.hidden{display:none!important}
+
+/* ---- game screen: the paper fills everything between the top bar and the controls ---- */
+#screen-game{padding:0;overflow:hidden}
+#screen-game.active{display:flex;flex-direction:column;height:100vh;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:0}
+.gbar{flex:none;width:100%;display:flex;align-items:center;gap:8px;padding:6px 10px 4px;font-size:.9rem}
+.gbar .code{font-family:'Patrick Hand',cursive;font-size:1.3rem;letter-spacing:.1em;color:var(--accent)}
+.gbar .link{padding:4px 4px;font-size:.82rem}
+.gbar .standing{flex:1;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gbar .standing b{color:var(--text)}
+.gbar .ghost{padding:6px 8px}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
+.paper-wrap{perspective:1800px;perspective-origin:50% 50%;margin:0}
+.paper{position:relative;width:300px;height:500px;transform-style:preserve-3d}
+.paper::before{content:'';position:absolute;inset:0;border-radius:6px;box-shadow:0 16px 34px rgba(0,0,0,.5);transform:translateZ(-1px)}
+.half{position:absolute;left:0;width:100%;height:50%;transform-style:preserve-3d}
+.half.top{top:0;transform-origin:50% 100%}
+.half.bottom{top:50%;transform-origin:50% 0}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--paper)}
+.half.top .face{border-radius:6px 6px 0 0}
+.half.bottom .face{border-radius:0 0 6px 6px}
+.face.front svg{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.face.back{transform:rotateX(180deg);pointer-events:none;background-color:#f3eedc;box-shadow:inset 0 0 60px rgba(90,70,30,.12)}
+.shade{position:absolute;inset:0;opacity:0;pointer-events:none;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.half.top .shade{background:linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,.05) 70%);border-radius:6px 6px 0 0}
+.half.bottom .shade{background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,.05) 70%);border-radius:0 0 6px 6px}
+.half.covered .shade{animation:shade var(--fold-ms) linear}
+.half.fold-up{animation:foldUp var(--fold-ms) cubic-bezier(.5,0,.25,1)}
+.half.fold-down{animation:foldDown var(--fold-ms) cubic-bezier(.5,0,.25,1)}
+@keyframes foldUp{0%{transform:translateZ(2px) rotateX(0)}42%{transform:translateZ(2px) rotateX(180deg)}60%{transform:translateZ(2px) rotateX(180deg)}100%{transform:translateZ(2px) rotateX(0)}}
+@keyframes foldDown{0%{transform:translateZ(2px) rotateX(0)}42%{transform:translateZ(2px) rotateX(-180deg)}60%{transform:translateZ(2px) rotateX(-180deg)}100%{transform:translateZ(2px) rotateX(0)}}
+@keyframes shade{0%{opacity:0}30%{opacity:.75}62%{opacity:.75}100%{opacity:0}}
+.paper.busy .face.front svg{pointer-events:none}
+
+/* ---- things drawn on the paper ---- */
+.fig.mine.drag{cursor:grab}
+.fig.theirs{pointer-events:none}
+.fig.lift{filter:drop-shadow(0 4px 3px rgba(0,0,0,.35))}
+.blob.aim{opacity:.72}
+.blob.fresh{transform-box:fill-box;transform-origin:center;animation:inkSpread .75s cubic-bezier(.2,.8,.2,1) both}
+@keyframes inkSpread{from{transform:scale(.2);opacity:0}55%{opacity:1}to{transform:scale(1);opacity:1}}
+.fig.dead.fresh{animation:popIn .4s ease-out both}
+@keyframes popIn{from{opacity:0}to{opacity:1}}
+.fig.dead.fresh .xmark line{stroke-dasharray:90;stroke-dashoffset:90;animation:drawX .32s ease-out forwards .35s}
+.fig.dead.fresh .xmark line:nth-child(2){animation-delay:.62s}
+@keyframes drawX{to{stroke-dashoffset:0}}
+.aimring{animation:ring 1.2s ease-in-out infinite;stroke-opacity:.6}
+@keyframes ring{0%,100%{stroke-opacity:.25}50%{stroke-opacity:.85}}
+@media (prefers-reduced-motion:reduce){
+  :root{--fold-ms:900ms}
+  .blob.fresh,.fig.dead.fresh,.fig.dead.fresh .xmark line,.aimring{animation-duration:.01ms!important;animation-delay:0s!important}
+}
+
+.panel{flex:none;width:100%;padding:6px 10px 8px;text-align:center}
+.status{margin:0 auto;min-height:40px;text-align:center;max-width:460px;line-height:1.3;font-size:.95rem;padding:0 4px}
+.status b{color:var(--accent)}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px;min-height:46px}
+.actions button{min-width:120px;padding:11px 18px}
+.meter{width:100%;max-width:340px;margin:0 auto}
+.meter-label{font-size:.85rem;color:var(--muted);margin-bottom:6px}
+.track{position:relative;height:24px;border-radius:999px;background:rgba(0,0,0,.38);border:1px solid var(--card-line);overflow:hidden;cursor:pointer;touch-action:manipulation}
+.track .zone{position:absolute;left:45.5%;width:9%;top:0;bottom:0;background:rgba(245,194,66,.4)}
+.track .mark{position:absolute;top:2px;bottom:2px;width:6px;margin-left:-3px;left:0;background:#fff;border-radius:3px;box-shadow:0 0 6px rgba(255,255,255,.7)}
+
+/* ---- overlay + toast ---- */
+.overlay{position:fixed;inset:0;background:rgba(10,20,18,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.overlay .box{background:#24403d;border:1px solid var(--card-line);border-radius:20px;padding:24px;max-width:380px;width:100%;text-align:center}
+.overlay p{color:var(--muted);line-height:1.45}
+.overlay input{margin-top:10px}
+.overlay .btns{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.overlay .recap{list-style:none;padding:0;margin:12px 0 0;color:var(--muted);line-height:1.7;text-align:left}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#0f1f1d;color:var(--text);padding:10px 16px;border-radius:999px;border:1px solid var(--card-line);opacity:0;transition:all .25s ease;pointer-events:none;z-index:60;max-width:92vw;text-align:center;font-size:.95rem}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ============ Sign in / create account ============ -->
+<section id="screen-auth" class="screen active">
+  <div class="card">
+    <h1 class="logo">Fold &amp; Press</h1>
+    <p class="tag">The stickman paper battle, now online.</p>
+    <div id="setup-note" class="note hidden">Online play isn’t connected yet. Paste your Firebase config into <code>index.html</code> (see README). Pass &amp; play works right now.</div>
+    <div id="auth-forms">
+      <div class="tabs">
+        <button class="tab active" data-tab="in" type="button">Sign in</button>
+        <button class="tab" data-tab="up" type="button">Create account</button>
+      </div>
+      <form id="form-in" class="aform" autocomplete="on">
+        <input name="email" type="email" placeholder="Email" required autocomplete="email">
+        <input name="password" type="password" placeholder="Password" required autocomplete="current-password">
+        <button class="primary" type="submit">Sign in</button>
+        <button type="button" class="link" id="btn-forgot">Forgot password?</button>
+      </form>
+      <form id="form-up" class="aform hidden" autocomplete="on">
+        <input name="name" placeholder="Your name (friends will see this)" required maxlength="20" autocomplete="nickname">
+        <input name="username" placeholder="Username (friends add you with this)" required minlength="3" maxlength="15" pattern="[A-Za-z0-9_]{3,15}" autocapitalize="none" autocomplete="username">
+        <input name="email" type="email" placeholder="Email" required autocomplete="email">
+        <input name="password" type="password" placeholder="Password (6+ characters)" required minlength="6" autocomplete="new-password">
+        <button class="primary" type="submit">Create account</button>
+      </form>
+      <div id="auth-error" class="err" aria-live="polite"></div>
+    </div>
+    <div class="or">or</div>
+    <button id="btn-local" class="secondary wide" type="button">Pass &amp; play on this device</button>
+    <p class="how">Both players draw their stickmen on their half of the page. Take turns dropping a wet ink dot: judge where it lands when the page folds over, because whatever the print touches is out. Last one with stickmen standing wins.</p>
+  </div>
+</section>
+
+<!-- ============ Lobby ============ -->
+<section id="screen-lobby" class="screen">
+  <div class="card lobby">
+    <div class="row between">
+      <div><h2>Hi, <span id="lobby-name"></span></h2><div class="uname" id="lobby-uname"></div></div>
+      <button id="btn-signout" class="link" type="button">Sign out</button>
+    </div>
+
+    <h3>Your games</h3>
+    <div id="games-list" class="list"></div>
+
+    <h3>New game</h3>
+    <div id="new-settings"></div>
+    <p class="hint">Tap Play next to a friend to challenge them with these settings, or make a code to share with anyone.</p>
+    <div id="friends-list" class="list"></div>
+    <button id="btn-create" class="secondary wide" type="button" style="margin-top:10px">Create game &amp; get a code</button>
+
+    <h3>Friends</h3>
+    <div id="requests-list" class="list"></div>
+    <div class="row" style="margin-top:6px"><input id="inp-friend" placeholder="Friend’s username" autocapitalize="none" autocomplete="off"><button id="btn-add-friend" class="secondary" type="button">Add</button></div>
+    <div id="friend-error" class="err" aria-live="polite"></div>
+
+    <h3>Join with a code</h3>
+    <div class="row"><input id="inp-code" placeholder="Game code" maxlength="5" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase"><button id="btn-join" class="primary" type="button">Join</button></div>
+    <div id="lobby-error" class="err" aria-live="polite"></div>
+    <div class="or">or</div>
+    <button id="btn-local2" class="secondary wide" type="button">Pass &amp; play on this device</button>
+  </div>
+</section>
+
+<!-- ============ Game ============ -->
+<section id="screen-game" class="screen">
+  <header class="gbar">
+    <b class="code" id="g-code">—</b>
+    <button id="btn-copy" class="link" type="button">Copy link</button>
+    <div class="standing"><span id="lbl-opp"></span> · <span id="lbl-me"></span></div>
+    <button id="btn-leave" class="ghost" type="button">Leave</button>
+  </header>
+  <div class="stage">
+    <div class="paper-wrap">
+      <div class="paper" id="paper">
+        <div class="half top" id="half-top">
+          <div class="face front"><svg id="svg-top" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div class="face back"></div>
+          <div class="shade"></div>
+        </div>
+        <div class="half bottom" id="half-bot">
+          <div class="face front"><svg id="svg-bot" viewBox="0 500 600 500" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div class="face back"></div>
+          <div class="shade"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="actions" id="actions"></div>
+  </div>
+</section>
+
+<div id="overlay" class="overlay hidden"><div class="box"><div id="ov-content"></div><div class="btns" id="ov-btns"></div></div></div>
+<div id="toast" class="toast" role="status"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ============================================================
+   1) FIREBASE CONFIG — paste the config from your own Firebase
+      project here (Project settings → General → Your apps → Config).
+      Until you do, only Pass & play is available.
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBy7fuarnult7bUMSEg3TgAgJuDe9V2d-g",
+  authDomain: "fold-and-press.firebaseapp.com",
+  databaseURL: "https://fold-and-press-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fold-and-press",
+  storageBucket: "fold-and-press.firebasestorage.app",
+  messagingSenderId: "214382134849",
+  appId: "1:214382134849:web:e968c4ccf75ff5b8f1a8c0"
+};
+/* ============================================================ */
+
+/* ---------- game constants (tweak freely) ---------- */
+const SHEET_W = 600, HALF_H = 600, SHEET_H = 1200;       // the page: 600 wide, two 600-tall halves (a 1:2 sheet), crease at y=600
+const FIG_SCALE = 0.6;                                    // stickman size relative to the drawing (head radius ends up ≈ 5 units)
+const BLOB_R = { head: 5, small: 8, medium: 12, large: 18 };   // ink dot radius per setting; "head" matches a stickman's head
+const WOBBLE = { steady: 0, slight: 6, wobbly: 14 };      // random slip when the page is pressed (not used by the press meter)
+// Press meter levels: `clean` is the half-width of the centre zone (fraction of the bar), `sweepMs` one sweep across,
+// `max` the slip (in page units) when you stop at the very edge. Inside the zone the page lies flat; outside it slips in proportion.
+const METER_LEVELS = {
+  'meter-relaxed': { clean: 0.09, sweepMs: 1200, max: 24 },
+  'meter':         { clean: 0.045, sweepMs: 1000, max: 30 },
+  'meter-tight':   { clean: 0.025, sweepMs: 850, max: 36 },
+  'meter-brutal':  { clean: 0.012, sweepMs: 700, max: 42 }
+};
+const HIT = { halfW: 14 * FIG_SCALE, up: 36 * FIG_SCALE, down: 30 * FIG_SCALE };   // stickman hit box around its anchor point
+const PAD = { x: 30, top: 30, bottom: 26 };               // how close to the edges / crease a stickman may stand
+const FOLD_MS = 2600;                                     // must match --fold-ms in the CSS
+const DEFAULTS = { figures: 5, blob: 'head', visible: true, wobble: 'meter', fade: 0 };   // fade: 0 = ink stays, 2 = last 2 shots show, 1 = last shot only
+
+/* ---------- small helpers ---------- */
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function genCode() { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 5; i++) c += A[Math.floor(Math.random() * A.length)]; return c; }
+let toastT = null;
+function toast(msg, ms) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 2800); }
+function show(name) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name)); if (name === 'game') requestAnimationFrame(sizePaper); }
+function overlay(html, btns) {
+  const o = $('#overlay'); $('#ov-content').innerHTML = html;
+  const b = $('#ov-btns'); b.innerHTML = '';
+  (btns || []).forEach(x => { const btn = document.createElement('button'); btn.type = 'button'; btn.className = x.cls || 'primary'; btn.innerHTML = x.label; btn.onclick = x.act; b.appendChild(btn); });
+  o.classList.remove('hidden');
+}
+function hideOverlay() { $('#overlay').classList.add('hidden'); }
+function friendlyAuth(err) {
+  const c = (err && err.code) || '';
+  const m = {
+    'auth/email-already-in-use': 'That email already has an account — try signing in.',
+    'auth/invalid-email': 'That email address doesn’t look right.',
+    'auth/weak-password': 'Password needs at least 6 characters.',
+    'auth/user-not-found': 'No account with that email.',
+    'auth/wrong-password': 'Wrong password.',
+    'auth/invalid-credential': 'Wrong email or password.',
+    'auth/too-many-requests': 'Too many attempts — wait a minute and try again.',
+    'auth/network-request-failed': 'Network problem — check your connection.',
+    'auth/unauthorized-domain': 'This site’s domain isn’t authorised yet: add it under Firebase → Authentication → Settings → Authorized domains.',
+    'auth/operation-not-allowed': 'Email/password sign-in isn’t enabled yet (Firebase → Authentication → Sign-in method).'
+  };
+  return m[c] || (err && err.message) || 'Something went wrong.';
+}
+function friendlyDb(err) {
+  const msg = (err && err.message) || String(err || '');
+  if (/PERMISSION_DENIED|permission_denied/i.test(msg)) return 'The database rules blocked that. Paste database.rules.json into Firebase → Realtime Database → Rules and publish.';
+  return msg || 'Something went wrong.';
+}
+const USERNAME_RE = /^[a-z0-9_]{3,15}$/;
+const cleanUsername = s => String(s || '').trim().toLowerCase().replace(/^@/, '');
+
+/* ---------- settings widget (shared by lobby and pass & play) ---------- */
+function settingsHTML(p) {
+  const sel = (id, opts, cur) => `<select id="${p}-${id}">${opts.map(([v, l]) => `<option value="${v}"${String(v) === String(cur) ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+  return `<div class="grid2">` +
+    `<label>Stickmen each${sel('fig', [[3, '3'], [5, '5'], [7, '7']], DEFAULTS.figures)}</label>` +
+    `<label>Ink dot${sel('blob', [['head', 'Head-sized (hard)'], ['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']], DEFAULTS.blob)}</label>` +
+    `<label>Stickmen are${sel('vis', [['1', 'Visible (classic)'], ['0', 'Hidden (battleship)']], DEFAULTS.visible ? '1' : '0')}</label>` +
+    `<label>Fold${sel('wob', [['meter-relaxed', 'Press meter — relaxed'], ['meter', 'Press meter — normal'], ['meter-tight', 'Press meter — tight'], ['meter-brutal', 'Press meter — brutal'], ['steady', 'Steady (no meter)'], ['slight', 'Slips a little (random)'], ['wobbly', 'Wobbly (random)']], DEFAULTS.wobble)}</label>` +
+    `<label>Ink${sel('fade', [['0', 'Stays on the page'], ['2', 'Only last 2 shots show'], ['1', 'Only last shot shows']], String(DEFAULTS.fade))}</label></div>`;
+}
+function readSettings(p) { return { figures: +$(`#${p}-fig`).value, blob: $(`#${p}-blob`).value, visible: $(`#${p}-vis`).value === '1', wobble: $(`#${p}-wob`).value, fade: +$(`#${p}-fade`).value || 0 }; }
+const isMeter = () => String(settings().wobble).indexOf('meter') === 0;
+const meterLevel = () => METER_LEVELS[settings().wobble] || METER_LEVELS.meter;
+
+/* ---------- geometry ---------- */
+function circleHitsFig(cx, cy, r, fx, fy) {
+  const nx = clamp(cx, fx - HIT.halfW, fx + HIT.halfW), ny = clamp(cy, fy - HIT.up, fy + HIT.down);
+  const dx = cx - nx, dy = cy - ny;
+  return dx * dx + dy * dy <= r * r;
+}
+// A dot at (x, y) transfers to the mirror position across the crease, (x, 1000 − y), plus any slip from pressing.
+const shotTarget = s => [s.x + (s.dx || 0), SHEET_H - s.y + (s.dy || 0)];
+function computeHits(shot, figures, r) {
+  const t = shotTarget(shot);
+  return (figures || []).filter(f => f && f.alive !== false && circleHitsFig(t[0], t[1], r, f.x, f.y)).map(f => ({ id: f.id, x: f.x, y: f.y }));
+}
+function rollSlip(wobble) {
+  const w = WOBBLE[wobble] || 0; if (!w) return [0, 0];
+  const ang = Math.random() * Math.PI * 2, dist = w * Math.sqrt(Math.random());
+  return [Math.round(Math.cos(ang) * dist), Math.round(Math.sin(ang) * dist)];
+}
+
+/* ---------- SVG drawing ---------- */
+// Plain paper on purpose: ruled lines or a crease mark would let you count your way to a perfect mirror.
+function paperBG(k, y0) {
+  return `<rect x="0" y="${y0 - 2}" width="${SHEET_W}" height="${HALF_H + 4}" fill="#fbf8ec"/>` +
+    `<line x1="46" y1="${y0 - 2}" x2="46" y2="${y0 + HALF_H + 2}" stroke="#e9a4a4" stroke-width="1.2"/>`;
+}
+function figSVG(vx, vy, o) {
+  const rnd = mulberry32(o.seed);
+  const a1 = Math.round(-20 + rnd() * 22), a2 = Math.round(-20 + rnd() * 22), tilt = (rnd() * 6 - 3).toFixed(1);
+  const stroke = o.dead ? '#8e8e8e' : '#2d2d2d';
+  const cls = ['fig', o.cls || '', o.dead ? 'dead' : '', o.fresh ? 'fresh' : ''].join(' ').trim();
+  // The drawing is scaled down; the invisible grab rectangle stays finger-sized so placing them is still easy.
+  return `<g class="${cls}" data-id="${esc(o.id)}" data-tilt="${tilt}" transform="translate(${vx.toFixed(1)},${vy.toFixed(1)}) rotate(${tilt})">` +
+    `<rect x="-24" y="-30" width="48" height="60" fill="transparent"/>` +
+    `<g transform="scale(${FIG_SCALE})">` +
+    `<g fill="none" stroke="${stroke}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">` +
+    `<circle cx="0" cy="-27" r="8.5" fill="#fbf8ec"/>` +
+    `<path d="M0,-18.5 V8 M0,-11 L-15,${a1} M0,-11 L15,${a2} M0,8 L-11,30 M0,8 L11,30"/></g>` +
+    (o.dead ? '' : `<g fill="#2d2d2d"><circle cx="-3" cy="-28.5" r="1.3"/><circle cx="3" cy="-28.5" r="1.3"/></g><path d="M-3.5,-24 Q0,-21.5 3.5,-24" fill="none" stroke="#2d2d2d" stroke-width="1.5" stroke-linecap="round"/>`) +
+    (o.dead ? `<g class="xmark" fill="none" stroke="#c41e1e" stroke-width="5" stroke-linecap="round"><line x1="-19" y1="-40" x2="19" y2="32"/><line x1="19" y1="-40" x2="-19" y2="32"/></g>` : '') +
+    `</g></g>`;
+}
+function blobPath(cx, cy, r, rnd) {
+  const n = 11, pts = [];
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, rr = r * (0.8 + rnd() * 0.38); pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); }
+  const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+  const m0 = mid(pts[0], pts[1]);
+  let d = `M${m0[0].toFixed(1)},${m0[1].toFixed(1)}`;
+  for (let i = 1; i <= n; i++) { const p = pts[i % n], m = mid(p, pts[(i + 1) % n]); d += ` Q${p[0].toFixed(1)},${p[1].toFixed(1)} ${m[0].toFixed(1)},${m[1].toFixed(1)}`; }
+  return d + 'Z';
+}
+function blobSVG(vx, vy, r, seed, o) {
+  const rnd = mulberry32(seed);
+  const main = blobPath(vx, vy, r, rnd);
+  let drops = '', shine = '';
+  if (r >= 8) {   // satellite droplets and a highlight only read at larger sizes; a pen dot is just a dot
+    const nd = 2 + Math.floor(rnd() * 3);
+    for (let i = 0; i < nd; i++) { const a = rnd() * Math.PI * 2, dist = r * (1.15 + rnd() * 0.55), rr = r * (0.08 + rnd() * 0.14); drops += `<circle cx="${(vx + Math.cos(a) * dist).toFixed(1)}" cy="${(vy + Math.sin(a) * dist).toFixed(1)}" r="${rr.toFixed(1)}"/>`; }
+    shine = `<ellipse cx="${(vx - r * 0.3).toFixed(1)}" cy="${(vy - r * 0.3).toFixed(1)}" rx="${(r * 0.28).toFixed(1)}" ry="${(r * 0.18).toFixed(1)}" fill="#ffffff" fill-opacity="0.25" transform="rotate(-30 ${vx.toFixed(1)} ${vy.toFixed(1)})"/>`;
+  }
+  const fill = o.kind === 'print' ? '#b8201f' : '#c41e1e', op = o.kind === 'print' ? 0.85 : 0.95;
+  const cls = ['blob', o.kind || '', o.fresh ? 'fresh' : '', o.cls || ''].join(' ').trim();
+  return `<g class="${cls}" fill="${fill}" fill-opacity="${op}"><path d="${main}"/>${drops}${shine}</g>`;
+}
+
+/* ---------- state ---------- */
+const ctx = { mode: null, uid: null, name: null, username: null, authUid: null, authName: null };
+let store = null, game = null, secret = null;
+let placement = null, aim = null, drag = null;
+const knownShots = new Set(), revealed = new Set(), resolving = new Set(), freshIds = new Set();
+let foldQueue = [], pendingReveal = null, animating = false, firstLoad = true, startRequested = false, holdFolds = false;
+let meter = null;   // { x, y, start, raf } while the press meter is sweeping
+const paperEl = $('#paper'), halfTop = $('#half-top'), halfBot = $('#half-bot'), svgTop = $('#svg-top'), svgBot = $('#svg-bot');
+
+const players = () => (game && game.players) || {};
+const me = () => players()[ctx.uid] || null;
+const oppUid = () => Object.keys(players()).find(u => u !== ctx.uid) || null;
+const opp = () => { const u = oppUid(); return u ? players()[u] : null; };
+const oppName = () => (opp() && opp().name) || 'your opponent';
+const isFlip = () => !!(me() && me().side === 'top');
+// Logical <-> visual: the viewer's own half is always drawn at the bottom. The mapping is its own inverse.
+const V = (x, y) => [x, isFlip() ? SHEET_H - y : y];
+const settings = () => Object.assign({}, DEFAULTS, (game && game.settings) || {});
+const blobR = () => BLOB_R[settings().blob] || BLOB_R.head;
+const visibleMode = () => settings().visible !== false;
+// Where a player's stickmen live: in the open game (classic) or in a private branch only they can read (hidden).
+function figData(uid) { if (!game || !uid) return null; if (visibleMode()) return (game.figures && game.figures[uid]) || null; return uid === ctx.uid ? secret : null; }
+const figsReady = uid => { const d = figData(uid); return !!(d && d.round === game.round && Array.isArray(d.figures)); };
+const editing = () => { const m = me(); return !!(game && (game.status === 'lobby' || game.status === 'placing') && m && !m.ready); };
+const myPending = () => Object.values((game && game.shots) || {}).some(s => s.by === ctx.uid && !s.resolved);
+const settled = () => !animating && !pendingReveal && foldQueue.length === 0;
+
+function myFigs() {
+  if (editing()) { if (!placement) placement = defaultPlacement(); return placement; }
+  return figsReady(ctx.uid) ? figData(ctx.uid).figures : [];
+}
+function defaultPlacement() {
+  const n = Math.max(1, +settings().figures || 5);
+  const rows = n > 5 ? 2 : 1, perRow = Math.ceil(n / rows), out = [];
+  for (let i = 0; i < n; i++) {
+    const row = Math.floor(i / perRow), col = i % perRow;
+    const cnt = row === rows - 1 ? n - perRow * (rows - 1) : perRow;
+    const vx = SHEET_W / 2 + (col - (cnt - 1) / 2) * Math.min(90, (SHEET_W - 2 * PAD.x) / cnt);
+    const vy = rows === 1 ? HALF_H * 1.6 : (row === 0 ? HALF_H * 1.42 : HALF_H * 1.76);
+    const p = V(vx, vy);
+    out.push({ id: 'f' + (i + 1), x: Math.round(p[0]), y: Math.round(p[1]), alive: true });
+  }
+  return out;
+}
+function shufflePlacement() {
+  const n = (placement || []).length || 5, pts = [];
+  for (let i = 0; i < n; i++) {
+    let best = null;
+    for (let t = 0; t < 50; t++) {
+      const vx = PAD.x + Math.random() * (SHEET_W - 2 * PAD.x), vy = HALF_H + PAD.top + Math.random() * (HALF_H - PAD.top - PAD.bottom);
+      const d = Math.min(Infinity, ...pts.map(o => Math.hypot(o.vx - vx, o.vy - vy)));
+      if (!best || d > best.d) best = { vx, vy, d };
+      if (d > 60) break;
+    }
+    pts.push(best);
+  }
+  placement = pts.map((o, i) => { const p = V(o.vx, o.vy); return { id: 'f' + (i + 1), x: Math.round(p[0]), y: Math.round(p[1]), alive: true }; });
+}
+// Shared by both stores: given hits against `figs` under `figPath`, the writes that record them and pass the turn.
+function applyHitsUpdates(upd, code, victimUid, figPath, figs, hits, shooterUid) {
+  hits.forEach(h => { const i = figs.findIndex(f => f && f.id === h.id); if (i >= 0) upd[`${figPath}/figures/${i}/alive`] = false; });
+  const aliveAfter = figs.filter(f => f && f.alive !== false && !hits.some(h => h.id === f.id)).length;
+  upd[`games/${code}/players/${victimUid}/alive`] = aliveAfter;
+  if (aliveAfter === 0) { upd[`games/${code}/status`] = 'finished'; upd[`games/${code}/winner`] = shooterUid; upd[`games/${code}/nextStarter`] = victimUid; upd[`games/${code}/turn`] = null; }
+  else upd[`games/${code}/turn`] = victimUid;
+}
+
+/* ---------- online store (Firebase) ---------- */
+let auth = null, db = null, presenceRef = null;
+function makeOnlineStore() {
+  let code = null, gref = null, sref = null, gcb = null, scb = null;
+  const TS = () => firebase.database.ServerValue.TIMESTAMP;
+  const figPath = uid => visibleMode() ? `games/${code}/figures/${uid}` : `secrets/${code}/${uid}`;
+  const newGame = (gameSettings, status, extraPlayers) => ({
+    code, host: ctx.uid, status, round: 1, settings: gameSettings, createdAt: TS(), turn: null, winner: null,
+    players: Object.assign({ [ctx.uid]: { name: ctx.name, side: 'top', ready: false, joinedAt: TS() } }, extraPlayers || {})
+  });
+  return {
+    code: () => code,
+    async create(gameSettings) {
+      code = genCode();
+      await db.ref().update({ [`games/${code}`]: newGame(gameSettings, 'lobby'), [`users/${ctx.uid}/games/${code}`]: TS() });
+      return code;
+    },
+    async challenge(fuid, fname, gameSettings) {
+      code = genCode();
+      const g = newGame(gameSettings, 'placing', { [fuid]: { name: fname, side: 'bottom', ready: false, joinedAt: TS() } });
+      await db.ref().update({ [`games/${code}`]: g, [`users/${ctx.uid}/games/${code}`]: TS(), [`users/${fuid}/games/${code}`]: TS() });
+      return code;
+    },
+    async join(c) {
+      c = String(c || '').toUpperCase().trim();
+      const snap = await db.ref('games/' + c).once('value');
+      if (!snap.exists()) throw new Error('No game found with that code.');
+      const g = snap.val(), ps = g.players || {}, upd = {};
+      if (!ps[ctx.uid]) {
+        if (Object.keys(ps).length >= 2) throw new Error('That game already has two players.');
+        upd[`games/${c}/players/${ctx.uid}`] = { name: ctx.name, side: 'bottom', ready: false, joinedAt: TS() };
+        upd[`games/${c}/status`] = 'placing';
+      }
+      upd[`users/${ctx.uid}/games/${c}`] = TS();
+      await db.ref().update(upd);
+      code = c;
+    },
+    subscribe() {
+      gref = db.ref('games/' + code); sref = db.ref(`secrets/${code}/${ctx.uid}`);
+      gcb = gref.on('value', s => onGameUpdate(s.val()), err => toast(friendlyDb(err)));
+      scb = sref.on('value', s => onSecretUpdate(s.val()), err => toast(friendlyDb(err)));
+    },
+    unsubscribe() { if (gref) gref.off('value', gcb); if (sref) sref.off('value', scb); gref = sref = null; },
+    refresh() {},
+    async saveFigures(figs) {
+      await db.ref().update({
+        [figPath(ctx.uid)]: { round: game.round, figures: figs },
+        [`games/${code}/players/${ctx.uid}/ready`]: true,
+        [`games/${code}/players/${ctx.uid}/total`]: figs.length,
+        [`games/${code}/players/${ctx.uid}/alive`]: figs.length
+      });
+    },
+    async start() { await gref.update({ status: 'playing', turn: game.nextStarter || game.host }); },
+    async fire(x, y, slip) {
+      const id = gref.child('shots').push().key;
+      const shot = { by: ctx.uid, x, y, dx: slip[0], dy: slip[1], round: game.round, ts: TS(), resolved: false }, upd = {};
+      if (visibleMode()) {
+        // Classic mode: everyone can see the stickmen, so the shooter settles the hit immediately — no need for the other player to be online.
+        const o = oppUid(), figs = figsReady(o) ? figData(o).figures : [];
+        const hits = computeHits(shot, figs, blobR());
+        shot.resolved = true; shot.hits = hits;
+        applyHitsUpdates(upd, code, o, figPath(o), figs, hits, ctx.uid);
+      }
+      upd[`games/${code}/shots/${id}`] = shot;
+      await db.ref().update(upd);
+    },
+    // Hidden mode: the defender resolves the shot, because only they can read their own stickmen.
+    async resolve(id, hits) {
+      const shotRef = gref.child('shots/' + id);
+      const res = await shotRef.transaction(s => { if (s === null) return s; if (s.resolved) return; return Object.assign({}, s, { resolved: true, hits }); });
+      const shot = res.committed ? res.snapshot.val() : null;
+      if (!shot || !shot.resolved) return;
+      const figs = figsReady(ctx.uid) ? figData(ctx.uid).figures : [], upd = {};
+      applyHitsUpdates(upd, code, ctx.uid, figPath(ctx.uid), figs, hits, shot.by);
+      await db.ref().update(upd);
+    },
+    async rematch() {
+      const upd = { [`games/${code}/status`]: 'placing', [`games/${code}/round`]: (game.round || 1) + 1, [`games/${code}/shots`]: null, [`games/${code}/figures`]: null, [`games/${code}/turn`]: null, [`games/${code}/winner`]: null };
+      Object.keys(game.players || {}).forEach(u => { upd[`games/${code}/players/${u}/ready`] = false; });
+      await db.ref().update(upd);
+    }
+  };
+}
+
+/* ---------- local store (pass & play on one device) ---------- */
+function makeLocalStore(gameSettings) {
+  const g = { code: 'LOCAL', host: 'p1', status: 'placing', round: 1, settings: gameSettings, turn: null, winner: null, shots: {}, figures: {},
+    players: { p1: { name: 'Player 1', side: 'top', ready: false }, p2: { name: 'Player 2', side: 'bottom', ready: false } } };
+  const secrets = { p1: null, p2: null };
+  const visible = gameSettings.visible !== false;
+  let n = 0;
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const emit = () => onGameUpdate(clone(g));
+  const emitSecret = () => onSecretUpdate(!visible && secrets[ctx.uid] ? clone(secrets[ctx.uid]) : null);
+  const figsOf = uid => visible ? g.figures[uid] : secrets[uid];
+  return {
+    code: () => 'LOCAL',
+    subscribe() { emitSecret(); emit(); },
+    unsubscribe() {},
+    refresh() { emitSecret(); emit(); },
+    async saveFigures(figs) {
+      const data = { round: g.round, figures: clone(figs) };
+      if (visible) g.figures[ctx.uid] = data; else secrets[ctx.uid] = data;
+      const p = g.players[ctx.uid]; p.ready = true; p.total = figs.length; p.alive = figs.length;
+      emitSecret(); emit();
+    },
+    async start() { g.status = 'playing'; g.turn = g.nextStarter || g.host; emit(); },
+    async fire(x, y, slip) {
+      const id = 's' + String(++n).padStart(3, '0'), by = ctx.uid, def = by === 'p1' ? 'p2' : 'p1';
+      const shot = { by, x, y, dx: slip[0], dy: slip[1], round: g.round, ts: Date.now(), resolved: false };
+      g.shots[id] = shot;
+      const sec = figsOf(def), r = BLOB_R[g.settings.blob] || BLOB_R.head;
+      const hits = computeHits(shot, sec ? sec.figures : [], r);
+      shot.resolved = true; shot.hits = hits;
+      if (sec) hits.forEach(h => { const f = sec.figures.find(x => x.id === h.id); if (f) f.alive = false; });
+      const aliveAfter = sec ? sec.figures.filter(f => f.alive !== false).length : 0;
+      g.players[def].alive = aliveAfter;
+      if (aliveAfter === 0) { g.status = 'finished'; g.winner = by; g.nextStarter = def; g.turn = null; } else g.turn = def;
+      emit();
+    },
+    async resolve() {},
+    async rematch() {
+      g.status = 'placing'; g.round++; g.shots = {}; g.figures = {}; g.turn = null; g.winner = null;
+      Object.values(g.players).forEach(p => { p.ready = false; });
+      secrets.p1 = secrets.p2 = null;
+      emitSecret(); emit();
+    }
+  };
+}
+
+/* ---------- game loop ---------- */
+function resetRound() { knownShots.clear(); revealed.clear(); resolving.clear(); freshIds.clear(); foldQueue = []; pendingReveal = null; placement = null; aim = null; drag = null; stopMeter(); }
+
+/* ---------- press meter: a timed press decides how far the page slips ---------- */
+function meterPos() { const t = (performance.now() - meter.start) / meterLevel().sweepMs; return 1 - Math.abs((t % 2) - 1); }   // ping-pong 0 → 1 → 0
+function startMeter(x, y) {
+  meter = { x, y, start: performance.now(), raf: 0 };
+  render();
+  const tick = () => { if (!meter) return; const el = $('#meter-mark'); if (el) el.style.left = (meterPos() * 100).toFixed(2) + '%'; meter.raf = requestAnimationFrame(tick); };
+  meter.raf = requestAnimationFrame(tick);
+}
+function stopMeter() { if (meter) { cancelAnimationFrame(meter.raf); meter = null; } }
+async function pressMeter(b) {
+  if (!meter || !store) return;
+  const off = meterPos() - 0.5, m = meter, lv = meterLevel(); stopMeter();
+  const over = Math.max(0, Math.abs(off) - lv.clean);                 // how far outside the centre zone the marker stopped
+  const dx = Math.round(Math.sign(off) * (over / (0.5 - lv.clean)) * lv.max);
+  toast(over === 0 ? 'Clean press — the page lay flat.' : `The page slipped ${off < 0 ? 'left' : 'right'} as you pressed.`);
+  if (b) b.disabled = true; render();
+  try { await store.fire(m.x, m.y, [dx, 0]); } catch (err) { toast(friendlyDb(err)); render(); }
+}
+
+// Remember the last shot this device has watched unfold, so reopening a game can recap what happened meanwhile.
+const seenKey = () => 'fp.seen.' + (store ? store.code() : '');
+function lastSeen() { try { return localStorage.getItem(seenKey()); } catch (e) { return null; } }
+function markSeen(id) { try { localStorage.setItem(seenKey(), id); } catch (e) { /* storage unavailable */ } }
+function showRecap(ids) {
+  const lines = ids.map(id => {
+    const s = game.shots[id]; if (!s) return '';
+    const mine = s.by === ctx.uid, n = (s.hits || []).length;
+    const who = mine ? 'You' : esc((players()[s.by] || {}).name || 'They');
+    return `<li>${who} ${n ? `hit ${n === 1 ? 'a stickman' : n + ' stickmen'}` : 'missed'}.</li>`;
+  }).join('');
+  holdFolds = true;
+  overlay(`<h2>While you were away</h2><ul class="recap">${lines}</ul>`,
+    [{ label: 'Got it', act: () => { hideOverlay(); holdFolds = false; if (game && game.status === 'finished') showResult(); else nextFold(); render(); } }]);
+}
+
+function onSecretUpdate(s) { secret = s; maybeResolve(); render(); }
+
+function onGameUpdate(g) {
+  const prev = game; game = g;
+  if (!g) { if (prev) { toast('That game no longer exists.'); exitGame(); } return; }
+  if (prev && prev.round !== g.round) resetRound();
+  const shots = g.shots || {}, ls = lastSeen(), recap = [];
+  Object.keys(shots).sort().forEach(id => {
+    if (knownShots.has(id)) return;
+    knownShots.add(id);
+    if (firstLoad && shots[id].resolved) { revealed.add(id); if (ctx.mode === 'online' && (!ls || id > ls)) recap.push(id); return; }
+    foldQueue.push(id);
+  });
+  if (firstLoad && recap.length) { markSeen(recap[recap.length - 1]); holdFolds = true; setTimeout(() => showRecap(recap), 350); }
+  firstLoad = false;
+  if (!animating) nextFold();
+  if (pendingReveal && !animating && shots[pendingReveal] && shots[pendingReveal].resolved) { const id = pendingReveal; pendingReveal = null; reveal(id); }
+  const ps = Object.keys(g.players || {});
+  if (g.status === 'placing' && ps.length === 2 && ps.every(u => g.players[u].ready) && !startRequested) {
+    startRequested = true;
+    setTimeout(() => { Promise.resolve(store && store.start()).catch(e => toast(friendlyDb(e))).finally(() => { startRequested = false; }); }, 0);
+  }
+  maybeResolve();
+  if (prev && prev.status !== g.status) onStatusChange(prev.status, g.status);
+  render();
+}
+
+function maybeResolve() {
+  if (!game || game.status !== 'playing' || !figsReady(ctx.uid)) return;
+  const r = blobR();
+  Object.entries(game.shots || {}).forEach(([id, s]) => {
+    if (s.by !== ctx.uid && !s.resolved && !resolving.has(id)) {
+      resolving.add(id);
+      const hits = computeHits(s, figData(ctx.uid).figures, r);
+      Promise.resolve(store.resolve(id, hits)).catch(e => { resolving.delete(id); toast(friendlyDb(e)); });
+    }
+  });
+}
+
+function nextFold() {
+  if (animating || holdFolds || !foldQueue.length || !game) return;
+  const id = foldQueue.shift(), shot = game.shots && game.shots[id];
+  if (!shot) { nextFold(); return; }
+  animating = true; aim = null;
+  render();
+  const mine = shot.by === ctx.uid;
+  const half = mine ? halfBot : halfTop, other = mine ? halfTop : halfBot;
+  paperEl.classList.add('busy');
+  half.classList.add(mine ? 'fold-up' : 'fold-down'); other.classList.add('covered');
+  setTimeout(() => {
+    half.classList.remove('fold-up', 'fold-down'); other.classList.remove('covered'); paperEl.classList.remove('busy');
+    animating = false;
+    if (game && game.shots && game.shots[id] && game.shots[id].resolved) reveal(id);
+    else { pendingReveal = id; render(); }
+    nextFold();
+  }, FOLD_MS + 60);
+}
+
+function reveal(id) {
+  revealed.add(id); freshIds.add(id); markSeen(id);
+  render();
+  const s = game.shots[id], hits = s.hits || [], shooter = players()[s.by] || { name: 'Someone' }, mine = s.by === ctx.uid;
+  if (hits.length) toast(mine ? `Splat! You got ${hits.length === 1 ? 'one' : hits.length} of ${oppName()}’s stickmen.` : `${shooter.name} got ${hits.length === 1 ? 'one of your stickmen' : hits.length + ' of your stickmen'}.`);
+  else toast(mine ? 'Miss — the ink landed on empty paper.' : `${shooter.name} missed.`);
+  if (game.status === 'finished') setTimeout(showResult, 1400);
+}
+
+function onStatusChange(from, to) {
+  if (to === 'placing' && from === 'lobby') toast(`${oppName()} joined. Place your stickmen.`);
+  if (to === 'playing') { hideOverlay(); const t = players()[game.turn]; toast(`Both ready — ${t ? t.name : 'someone'} goes first.`); }
+  if (to === 'placing' && from === 'finished') { hideOverlay(); toast('Rematch! Place your stickmen.'); }
+}
+
+/* ---------- rendering ---------- */
+function render() {
+  if (!game || !$('#screen-game').classList.contains('active')) return;
+  const r = blobR(), items = [], shots = game.shots || {}, oUid = oppUid();
+  const push = (layer, svg) => items.push({ layer, svg });
+  const dead = {}; dead[ctx.uid] = new Set(); if (oUid) dead[oUid] = new Set();
+  const ids = Object.keys(shots).sort();
+  // "Ink fades": only each player's two most recent shots leave visible ink (hits stay crossed out).
+  const fadeN = +settings().fade || 0, recent = {};
+  if (fadeN) ids.forEach(id => { const by = shots[id].by; (recent[by] = recent[by] || []).push(id); });
+  const inkShows = id => !fadeN || recent[shots[id].by].slice(-fadeN).includes(id);
+  ids.forEach(id => {
+    const s = shots[id], seed = hashStr(id), o = V(s.x, s.y);
+    if (inkShows(id)) push(2, blobSVG(o[0], o[1], r, seed, { kind: 'wet' }));     // the wet dot on the shooter's side
+    if (!revealed.has(id)) return;
+    const tg = shotTarget(s), t = V(tg[0], tg[1]);
+    if (inkShows(id)) push(2, blobSVG(t[0], t[1], r * 0.96, seed + 7, { kind: 'print', fresh: freshIds.has(id) }));   // the print after pressing
+    const victim = s.by === ctx.uid ? oUid : ctx.uid;
+    (s.hits || []).forEach(h => {
+      if (victim && dead[victim]) dead[victim].add(h.id);
+      const p = V(h.x, h.y);
+      push(3, figSVG(p[0], p[1], { id: h.id, seed: hashStr((victim || '') + h.id + game.round), dead: true, fresh: freshIds.has(id) }));
+    });
+  });
+  const ed = editing();
+  myFigs().forEach(f => {
+    if (!f || dead[ctx.uid].has(f.id)) return;
+    const p = V(f.x, f.y);
+    push(1, figSVG(p[0], p[1], { id: f.id, seed: hashStr(ctx.uid + f.id + game.round), cls: 'mine' + (ed ? ' drag' : '') }));
+  });
+  if (visibleMode() && oUid && figsReady(oUid)) {
+    figData(oUid).figures.forEach(f => {
+      if (!f || dead[oUid].has(f.id)) return;
+      const p = V(f.x, f.y);
+      push(1, figSVG(p[0], p[1], { id: f.id, seed: hashStr(oUid + f.id + game.round), cls: 'theirs' }));
+    });
+  }
+  if (aim && settled() && !meter) {
+    const a = V(aim.x, aim.y);
+    const g = Math.max(r + 8, 16);   // crosshair gap: the dot can be tiny, so mark where it sits without hiding it
+    push(4, `<g class="aimring" fill="none" stroke="#c41e1e" stroke-width="1.2"><line x1="${a[0] - g - 16}" y1="${a[1]}" x2="${a[0] - g}" y2="${a[1]}"/><line x1="${a[0] + g}" y1="${a[1]}" x2="${a[0] + g + 16}" y2="${a[1]}"/><line x1="${a[0]}" y1="${a[1] - g - 16}" x2="${a[0]}" y2="${a[1] - g}"/><line x1="${a[0]}" y1="${a[1] + g}" x2="${a[0]}" y2="${a[1] + g + 16}"/></g>` +
+      blobSVG(a[0], a[1], r, hashStr('aim'), { kind: 'wet', cls: 'aim' }));
+  }
+  items.sort((a, b) => a.layer - b.layer);
+  const body = items.map(i => i.svg).join('');   // each half clips to its own viewBox, so ink across the crease just works
+  svgTop.innerHTML = paperBG('t', 0) + body;
+  svgBot.innerHTML = paperBG('b', HALF_H) + body;
+  renderLabels(); $('#status').innerHTML = statusHTML(); renderActions();
+  freshIds.clear();
+  sizePaper();
+}
+
+function renderLabels() {
+  const m = me(), o = opp();
+  const total = p => p.total || settings().figures || 5;
+  const deadCount = uid => { let n = 0; Object.keys(game.shots || {}).forEach(id => { if (!revealed.has(id)) return; const s = game.shots[id]; const victim = s.by === ctx.uid ? oppUid() : ctx.uid; if (victim === uid) n += (s.hits || []).length; }); return n; };
+  const standing = (uid, p) => (p.ready || game.status === 'playing' || game.status === 'finished')
+    ? `${Math.max(0, total(p) - deadCount(uid))}/${total(p)}` : 'placing';
+  $('#lbl-opp').innerHTML = o ? `<b>${esc(o.name)}</b> ${standing(oppUid(), o)}` : 'waiting for a friend';
+  $('#lbl-me').innerHTML = m ? `<b>${ctx.mode === 'local' ? esc(m.name) : 'You'}</b> ${standing(ctx.uid, m)}` : '';
+}
+
+function statusHTML() {
+  const m = me(), o = opp(), on = esc(oppName());
+  if (!m) return 'Joining…';
+  switch (game.status) {
+    case 'lobby': return m.ready ? `Locked in. Waiting for a friend to join with code <b>${esc(game.code)}</b>.` : `Share code <b>${esc(game.code)}</b> with a friend. Meanwhile, drag your stickmen into position.`;
+    case 'placing':
+      if (editing()) return `Drag your <b>${myFigs().length}</b> stickmen anywhere on your half (the bottom), then tap <b>Ready</b>.`;
+      if (o && !o.ready) return ctx.mode === 'local' ? `Locked in. Pass the phone so ${on} can place theirs.` : `Locked in. Waiting for ${on} to place their stickmen…`;
+      return 'Both ready — starting…';
+    case 'playing':
+      if (meter) { const lv = meterLevel(); return `<div class="meter"><div class="meter-label">Stop the marker in the yellow zone to press the page flat</div><div class="track" id="meter-track"><div class="zone" style="left:${(50 - lv.clean * 100).toFixed(2)}%;width:${(lv.clean * 200).toFixed(2)}%"></div><div class="mark" id="meter-mark"></div></div></div>`; }
+      if (animating) return 'Folding and pressing…';
+      if (pendingReveal || myPending()) return `Ink’s on the paper. ${on} will see it unfold when they next open the game — safe to close and come back later.`;
+      if (game.turn === ctx.uid) {
+        if (aim) return `Ink’s wet. Tap <b>Fold &amp; press</b> to transfer it.`;
+        return visibleMode() ? `<b>Your turn.</b> Pick one of their stickmen, judge where it lands when the page folds, and tap that spot on your half.` : `<b>Your turn.</b> Tap anywhere on your half to drop a wet ink dot.`;
+      }
+      return ctx.mode === 'local' ? `Pass the phone to <b>${esc(players()[game.turn] ? players()[game.turn].name : '')}</b>.` : `${on}’s turn. Safe to close — come back any time.`;
+    case 'finished': { const w = players()[game.winner]; return w ? (game.winner === ctx.uid ? `<b>You win!</b>` : `<b>${esc(w.name)}</b> wins.`) : 'Game over.'; }
+  }
+  return '';
+}
+
+function renderActions() {
+  const a = [], btn = (label, act, cls) => `<button type="button" class="${cls}" data-act="${act}">${label}</button>`;
+  const o = opp();
+  if (game.status === 'lobby' || game.status === 'placing') {
+    if (editing()) { a.push(btn('Shuffle', 'shuffle', 'secondary')); a.push(btn('Ready', 'ready', 'primary')); }
+    else if (ctx.mode === 'local' && o && !o.ready) a.push(btn(`Pass to ${esc(o.name)}`, 'pass', 'primary'));
+  } else if (game.status === 'playing' && settled() && !myPending()) {
+    if (meter) a.push(btn('Press!', 'press', 'primary'));
+    else if (game.turn === ctx.uid) { if (aim) { a.push(btn('Clear', 'clear', 'secondary')); a.push(btn('Fold &amp; press', 'fire', 'primary')); } }
+    else if (ctx.mode === 'local' && players()[game.turn]) a.push(btn(`Pass to ${esc(players()[game.turn].name)}`, 'pass', 'primary'));
+  } else if (game.status === 'finished' && settled()) {
+    a.push(btn('Rematch', 'rematch', 'primary'));
+  }
+  $('#actions').innerHTML = a.join('');
+}
+
+function sizePaper() {
+  const stage = $('.stage'); if (!stage || !paperEl) return;
+  const ratio = SHEET_W / SHEET_H, availH = Math.max(240, stage.clientHeight - 6), availW = Math.max(200, stage.clientWidth - 6);
+  const w = Math.floor(Math.min(availW, availH * ratio));
+  if (paperEl.style.width !== w + 'px') { paperEl.style.width = w + 'px'; paperEl.style.height = Math.round(w / ratio) + 'px'; }
+}
+window.addEventListener('resize', sizePaper);
+window.addEventListener('orientationchange', () => setTimeout(sizePaper, 150));
+svgTop.setAttribute('viewBox', `0 0 ${SHEET_W} ${HALF_H}`); svgBot.setAttribute('viewBox', `0 ${HALF_H} ${SHEET_W} ${HALF_H}`);
+
+/* ---------- actions ---------- */
+async function doAct(act, b) {
+  if (!game || !store) return;
+  try {
+    if (act === 'shuffle') { shufflePlacement(); render(); }
+    else if (act === 'ready') { if (b) b.disabled = true; await store.saveFigures(myFigs().map(f => ({ id: f.id, x: f.x, y: f.y, alive: true }))); placement = null; render(); }
+    else if (act === 'clear') { aim = null; render(); }
+    else if (act === 'fire') {
+      if (!aim) return; const a = aim; aim = null;
+      if (isMeter()) { startMeter(a.x, a.y); return; }
+      if (b) b.disabled = true; render(); await store.fire(a.x, a.y, rollSlip(settings().wobble));
+    }
+    else if (act === 'press') { await pressMeter(b); }
+    else if (act === 'pass') { const target = game.status === 'playing' ? game.turn : oppUid(); if (target) showPass(target); }
+    else if (act === 'rematch') { if (b) b.disabled = true; await store.rematch(); }
+  } catch (err) { toast(friendlyDb(err)); render(); }
+}
+$('#actions').addEventListener('click', e => { const b = e.target.closest('button[data-act]'); if (b) doAct(b.dataset.act, b); });
+$('#status').addEventListener('pointerdown', e => { if (meter && e.target.closest('.track')) pressMeter(); });
+
+function showPass(uid) {
+  const p = players()[uid]; if (!p) return;
+  overlay(`<h2>Pass the phone to ${esc(p.name)}</h2><p>${visibleMode() ? 'Their turn to aim.' : `${esc(p.name)}, no peeking until it’s in your hands.`}</p>`,
+    [{ label: `I’m ${esc(p.name)}, continue`, act: () => { ctx.uid = uid; ctx.name = p.name; placement = null; aim = null; hideOverlay(); store.refresh(); render(); } }]);
+}
+function showResult() {
+  const w = players()[game.winner]; if (!w) return;
+  const iWon = game.winner === ctx.uid;
+  const title = ctx.mode === 'local' ? `${esc(w.name)} wins!` : (iWon ? 'You win!' : `${esc(w.name)} wins this one.`);
+  const line = iWon ? `Every one of ${esc(oppName())}’s stickmen is under ink.` : 'All your stickmen are out. Rematch?';
+  overlay(`<h2>${title}</h2><p>${line}</p>`, [
+    { label: 'Rematch', act: () => { hideOverlay(); doAct('rematch'); } },
+    { label: ctx.mode === 'local' ? 'Quit' : 'Back to lobby', cls: 'secondary', act: () => { hideOverlay(); exitGame(); } }
+  ]);
+}
+
+/* ---------- pointer handling on the player's half ---------- */
+function svgPt(svg, e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+const FX = [PAD.x, SHEET_W - PAD.x], FY = [HALF_H + PAD.top, SHEET_H - PAD.bottom];
+svgBot.addEventListener('pointerdown', e => {
+  if (!game || animating) return;
+  const pt = svgPt(svgBot, e);
+  if (editing()) {
+    const gEl = e.target.closest ? e.target.closest('.fig.mine') : null; if (!gEl) return;
+    const f = (placement || []).find(x => x.id === gEl.dataset.id); if (!f) return;
+    const v = V(f.x, f.y);
+    drag = { id: f.id, dx: v[0] - pt.x, dy: v[1] - pt.y, el: gEl, tilt: gEl.dataset.tilt || 0, vx: null, vy: null };
+    svgBot.setPointerCapture(e.pointerId); gEl.classList.add('lift'); e.preventDefault();
+  } else if (game.status === 'playing' && game.turn === ctx.uid && settled() && !myPending() && !meter) {
+    if (pt.y < HALF_H) { toast('Aim on your own half — the ink folds over onto theirs.'); return; }
+    const vx = clamp(pt.x, 12, SHEET_W - 12), vy = clamp(pt.y, HALF_H + 12, SHEET_H - 12), l = V(vx, vy);
+    aim = { x: Math.round(l[0]), y: Math.round(l[1]) }; render();
+  }
+});
+svgBot.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const pt = svgPt(svgBot, e);
+  drag.vx = clamp(pt.x + drag.dx, FX[0], FX[1]); drag.vy = clamp(pt.y + drag.dy, FY[0], FY[1]);
+  drag.el.setAttribute('transform', `translate(${drag.vx.toFixed(1)},${drag.vy.toFixed(1)}) rotate(${drag.tilt})`);
+});
+function endDrag() {
+  if (!drag) return;
+  if (drag.vx != null && placement) { const f = placement.find(x => x.id === drag.id); if (f) { const l = V(drag.vx, drag.vy); f.x = Math.round(l[0]); f.y = Math.round(l[1]); } }
+  drag = null; render();
+}
+svgBot.addEventListener('pointerup', endDrag);
+svgBot.addEventListener('pointercancel', endDrag);
+svgTop.addEventListener('pointerdown', () => { if (game && game.status === 'playing' && game.turn === ctx.uid && settled()) toast('Aim on your own half — the ink folds over onto theirs.'); });
+
+/* ---------- entering / leaving games ---------- */
+function enterGame() {
+  lobbyStop();
+  resetRound(); firstLoad = true; animating = false; holdFolds = false; startRequested = false; game = null; secret = null;
+  halfTop.className = 'half top'; halfBot.className = 'half bottom'; paperEl.classList.remove('busy');
+  show('game');
+  $('#g-code').textContent = store.code();
+  $('#btn-copy').classList.toggle('hidden', ctx.mode === 'local');
+  if (ctx.mode === 'online') history.replaceState(null, '', location.pathname + location.search + '#' + store.code());
+  store.subscribe();
+}
+function exitGame() {
+  if (store) { try { store.unsubscribe(); } catch (e) { /* ignore */ } }
+  store = null; game = null; secret = null; resetRound(); stopMeter(); hideOverlay(); holdFolds = false;
+  halfTop.className = 'half top'; halfBot.className = 'half bottom'; paperEl.classList.remove('busy');
+  history.replaceState(null, '', location.pathname + location.search);
+  if (ctx.mode === 'local') { ctx.mode = ctx.authUid ? 'online' : null; ctx.uid = ctx.authUid; ctx.name = ctx.authName; }
+  if (ctx.authUid && auth) showLobby(); else show('auth');
+}
+$('#btn-leave').addEventListener('click', () => {
+  overlay(`<h2>Leave this game?</h2><p>${ctx.mode === 'local' ? 'The game on this device will be lost.' : 'It stays in your games list — come back any time.'}</p>`,
+    [{ label: 'Leave', act: () => { hideOverlay(); exitGame(); } }, { label: 'Stay', cls: 'secondary', act: hideOverlay }]);
+});
+$('#btn-copy').addEventListener('click', () => {
+  if (!store) return;
+  const code = store.code(), base = location.protocol === 'file:' ? '' : location.origin + location.pathname;
+  const text = base ? base + '#' + code : code;
+  const done = () => toast(base ? 'Invite link copied. Send it to a friend.' : 'Game code copied.');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => prompt('Copy this:', text));
+  else prompt('Copy this:', text);
+});
+
+function askLocalSettings() {
+  overlay(`<h2>Pass &amp; play</h2><p>Two players, one device.</p>${settingsHTML('loc')}`,
+    [{ label: 'Start', act: () => { const s = readSettings('loc'); hideOverlay(); startLocal(s); } }, { label: 'Cancel', cls: 'secondary', act: hideOverlay }]);
+}
+function startLocal(gameSettings) { ctx.mode = 'local'; ctx.uid = 'p1'; ctx.name = 'Player 1'; store = makeLocalStore(Object.assign({}, DEFAULTS, gameSettings || {})); enterGame(); }
+$('#btn-local').addEventListener('click', askLocalSettings);
+$('#btn-local2').addEventListener('click', askLocalSettings);
+
+/* ---------- lobby: your games, friends, requests ---------- */
+const lobby = { refs: [], games: {}, gameRefs: {}, friends: {}, requests: {}, presence: {}, presRefs: {} };
+const setLobbyErr = m => { $('#lobby-error').textContent = m || ''; };
+const setFriendErr = m => { $('#friend-error').textContent = m || ''; };
+$('#new-settings').innerHTML = settingsHTML('lob');
+
+function lobbyListen() {
+  lobbyStop();
+  const on = (ref, cb) => { const h = ref.on('value', cb, err => setLobbyErr(friendlyDb(err))); lobby.refs.push([ref, h]); };
+  on(db.ref(`users/${ctx.uid}/games`), snap => {
+    const codes = Object.keys(snap.val() || {});
+    codes.forEach(c => { if (!lobby.gameRefs[c]) { const r = db.ref('games/' + c); const h = r.on('value', s => { lobby.games[c] = s.val(); renderGamesList(); }); lobby.gameRefs[c] = [r, h]; } });
+    Object.keys(lobby.gameRefs).forEach(c => { if (!codes.includes(c)) { const [r, h] = lobby.gameRefs[c]; r.off('value', h); delete lobby.gameRefs[c]; delete lobby.games[c]; } });
+    renderGamesList();
+  });
+  on(db.ref(`users/${ctx.uid}/friends`), snap => {
+    lobby.friends = snap.val() || {};
+    Object.keys(lobby.friends).forEach(f => { if (!lobby.presRefs[f]) { const r = db.ref('status/' + f); const h = r.on('value', s => { lobby.presence[f] = !!s.val(); renderFriends(); }); lobby.presRefs[f] = [r, h]; } });
+    renderFriends();
+  });
+  on(db.ref(`friendRequests/${ctx.uid}`), snap => { lobby.requests = snap.val() || {}; renderFriends(); });
+}
+function lobbyStop() {
+  lobby.refs.forEach(([r, h]) => r.off('value', h)); lobby.refs = [];
+  Object.values(lobby.gameRefs).forEach(([r, h]) => r.off('value', h)); lobby.gameRefs = {}; lobby.games = {};
+  Object.values(lobby.presRefs).forEach(([r, h]) => r.off('value', h)); lobby.presRefs = {};
+}
+function renderGamesList() {
+  const el = $('#games-list'), codes = Object.keys(lobby.games).filter(c => lobby.games[c]);
+  if (!codes.length) { el.innerHTML = '<div class="empty">No games yet. Challenge a friend below, or make a code to share.</div>'; return; }
+  const rows = codes.map(c => {
+    const g = lobby.games[c], other = Object.keys(g.players || {}).find(u => u !== ctx.uid);
+    const on = other && g.players[other] ? esc(g.players[other].name) : null;
+    let sub = '', rank = 2, mine = false;
+    if (g.status === 'lobby') { sub = 'Waiting for someone to join with the code'; rank = 3; }
+    else if (g.status === 'placing') { const mp = g.players[ctx.uid]; if (mp && !mp.ready) { sub = 'Place your stickmen'; rank = 0; mine = true; } else sub = `Waiting for ${on} to place theirs`; }
+    else if (g.status === 'playing') { if (g.turn === ctx.uid) { sub = 'Your turn'; rank = 0; mine = true; } else sub = `${on}’s turn`; }
+    else if (g.status === 'finished') { sub = g.winner === ctx.uid ? 'Finished — you won' : `Finished — ${on || 'they'} won`; rank = 4; }
+    return { c, title: on ? `vs ${on}` : `Game ${esc(c)}`, sub, rank, mine, finished: g.status === 'finished', ts: g.createdAt || 0 };
+  }).sort((a, b) => a.rank - b.rank || b.ts - a.ts);
+  el.innerHTML = rows.map(r => `<div class="item row-btn${r.mine ? ' turn' : ''}" data-open="${esc(r.c)}"><div class="grow"><div>${r.title}</div><div class="sub">${r.sub}</div></div>` +
+    (r.finished ? `<button type="button" class="x" data-remove="${esc(r.c)}" aria-label="Remove from list">✕</button>` : `<span class="sub">›</span>`) + `</div>`).join('');
+}
+function renderFriends() {
+  const fl = $('#friends-list'), rl = $('#requests-list'), fids = Object.keys(lobby.friends);
+  fl.innerHTML = fids.length ? fids.map(f => { const fr = lobby.friends[f], onl = !!lobby.presence[f];
+    return `<div class="item"><span class="dot${onl ? ' on' : ''}"></span><div class="grow"><div>${esc(fr.name)}</div><div class="sub">@${esc(fr.username || '')}${onl ? ' · online now' : ''}</div></div><button type="button" class="primary" data-challenge="${esc(f)}">Play</button></div>`; }).join('')
+    : '<div class="empty">No friends added yet — add them by username in the Friends section.</div>';
+  const rids = Object.keys(lobby.requests);
+  rl.innerHTML = rids.map(f => { const rq = lobby.requests[f] || {};
+    return `<div class="item"><div class="grow"><div>${esc(rq.name || 'Someone')} wants to be friends</div><div class="sub">@${esc(rq.username || '')}</div></div><button type="button" class="primary" data-accept="${esc(f)}">Accept</button><button type="button" class="x" data-decline="${esc(f)}" aria-label="Decline">✕</button></div>`; }).join('');
+}
+$('#games-list').addEventListener('click', async e => {
+  const rm = e.target.closest('[data-remove]');
+  if (rm) { e.stopPropagation(); try { await db.ref(`users/${ctx.uid}/games/${rm.dataset.remove}`).remove(); } catch (err) { setLobbyErr(friendlyDb(err)); } return; }
+  const op = e.target.closest('[data-open]'); if (op) joinGame(op.dataset.open);
+});
+$('#friends-list').addEventListener('click', async e => {
+  const b = e.target.closest('[data-challenge]'); if (!b) return;
+  const fuid = b.dataset.challenge, fr = lobby.friends[fuid]; if (!fr) return;
+  b.disabled = true; setLobbyErr('');
+  try { store = makeOnlineStore(); await store.challenge(fuid, fr.name, readSettings('lob')); enterGame(); }
+  catch (err) { store = null; setLobbyErr(friendlyDb(err)); b.disabled = false; }
+});
+$('#requests-list').addEventListener('click', async e => {
+  const acc = e.target.closest('[data-accept]'), dec = e.target.closest('[data-decline]');
+  try {
+    if (acc) { await acceptRequest(acc.dataset.accept); toast('Friend added.'); }
+    else if (dec) await db.ref(`friendRequests/${ctx.uid}/${dec.dataset.decline}`).remove();
+  } catch (err) { setFriendErr(friendlyDb(err)); }
+});
+$('#btn-add-friend').addEventListener('click', async () => {
+  const inp = $('#inp-friend'), b = $('#btn-add-friend'); setFriendErr(''); b.disabled = true;
+  try { const r = await addFriend(inp.value); inp.value = ''; toast(r === 'accepted' ? 'They had already asked — you’re friends now.' : 'Request sent. They’ll see it in their lobby.'); }
+  catch (err) { setFriendErr(friendlyDb(err)); }
+  b.disabled = false;
+});
+$('#inp-friend').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-add-friend').click(); });
+async function addFriend(raw) {
+  const key = cleanUsername(raw);
+  if (!USERNAME_RE.test(key)) throw new Error('Usernames are 3–15 letters, numbers or underscores.');
+  if (key === ctx.username) throw new Error('That’s your own username.');
+  const fuid = (await db.ref('usernames/' + key).once('value')).val();
+  if (!fuid) throw new Error('No one has that username yet.');
+  if (lobby.friends[fuid]) throw new Error('You’re already friends.');
+  if (lobby.requests[fuid]) { await acceptRequest(fuid); return 'accepted'; }
+  await db.ref(`friendRequests/${fuid}/${ctx.uid}`).set({ name: ctx.name, username: ctx.username || '', ts: firebase.database.ServerValue.TIMESTAMP });
+  return 'sent';
+}
+async function acceptRequest(fuid) {
+  let { name, username } = lobby.requests[fuid] || {};
+  if (!name) { const p = (await db.ref('profiles/' + fuid).once('value')).val() || {}; name = p.name || 'Friend'; username = p.username || ''; }
+  await db.ref().update({
+    [`users/${ctx.uid}/friends/${fuid}`]: { name, username: username || '' },
+    [`users/${fuid}/friends/${ctx.uid}`]: { name: ctx.name, username: ctx.username || '' },
+    [`friendRequests/${ctx.uid}/${fuid}`]: null
+  });
+}
+function renderLobbyHeader() { $('#lobby-name').textContent = ctx.name || ''; $('#lobby-uname').textContent = ctx.username ? '@' + ctx.username : ''; }
+async function showLobby() {
+  show('lobby'); renderLobbyHeader(); setLobbyErr(''); setFriendErr('');
+  const hashCode = (location.hash || '').replace('#', '').toUpperCase();
+  if (/^[A-Z0-9]{5}$/.test(hashCode)) { history.replaceState(null, '', location.pathname + location.search); joinGame(hashCode); return; }
+  lobbyListen();
+}
+async function joinGame(code) {
+  setLobbyErr('');
+  try { store = makeOnlineStore(); await store.join(code); enterGame(); }
+  catch (err) { store = null; showLobby(); setLobbyErr(friendlyDb(err)); }
+}
+$('#btn-create').addEventListener('click', async () => {
+  setLobbyErr(''); const b = $('#btn-create'); b.disabled = true;
+  try { store = makeOnlineStore(); await store.create(readSettings('lob')); enterGame(); }
+  catch (err) { store = null; setLobbyErr(friendlyDb(err)); }
+  b.disabled = false;
+});
+$('#btn-join').addEventListener('click', () => { const c = $('#inp-code').value.trim().toUpperCase(); if (c.length < 5) { setLobbyErr('Enter the 5-character game code.'); return; } joinGame(c); });
+$('#inp-code').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-join').click(); });
+$('#btn-signout').addEventListener('click', async () => { lobbyStop(); if (presenceRef) { try { await presenceRef.remove(); } catch (e) { /* ignore */ } } if (auth) auth.signOut(); });
+
+/* ---------- profile, username, presence ---------- */
+async function claimUsername(raw) {
+  const key = cleanUsername(raw);
+  if (!USERNAME_RE.test(key)) throw new Error('Usernames are 3–15 letters, numbers or underscores.');
+  const res = await db.ref('usernames/' + key).transaction(cur => { if (cur === null || cur === ctx.uid) return ctx.uid; return; });
+  if (!res.committed) throw new Error('That username is taken — try another.');
+  if (ctx.username && ctx.username !== key) db.ref('usernames/' + ctx.username).remove().catch(() => {});
+  await db.ref(`profiles/${ctx.uid}`).update({ name: ctx.name, username: key });
+  ctx.username = key; renderLobbyHeader();
+}
+function ensureUsername() {
+  overlay(`<h2>Pick a username</h2><p>Friends add you with it. 3–15 letters, numbers or underscores.</p><input id="inp-uname" placeholder="username" autocapitalize="none" autocomplete="username"><div id="uname-err" class="err"></div>`,
+    [{ label: 'Save', act: async () => { try { await claimUsername($('#inp-uname').value); hideOverlay(); } catch (e) { $('#uname-err').textContent = e.message; } } }]);
+}
+let pendingSignup = null;
+async function completeProfile(user) {
+  if (pendingSignup) {
+    const ps = pendingSignup; pendingSignup = null;
+    try { await user.updateProfile({ displayName: ps.name }); } catch (e) { /* non-fatal */ }
+    ctx.name = ctx.authName = ps.name;
+    await db.ref(`profiles/${ctx.uid}`).update({ name: ps.name });
+    try { await claimUsername(ps.username); } catch (e) { toast(e.message); }
+  } else {
+    const p = (await db.ref(`profiles/${ctx.uid}`).once('value')).val() || {};
+    if (p.name) ctx.name = ctx.authName = p.name; else db.ref(`profiles/${ctx.uid}`).update({ name: ctx.name }).catch(() => {});
+    ctx.username = p.username || null;
+  }
+  if (!ctx.username) ensureUsername();
+}
+function setupPresence() {
+  presenceRef = db.ref('status/' + ctx.uid);
+  db.ref('.info/connected').on('value', s => { if (s.val() && presenceRef) { presenceRef.onDisconnect().remove(); presenceRef.set(true); } });
+}
+
+/* ---------- auth ---------- */
+const setAuthErr = m => { $('#auth-error').textContent = m || ''; };
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  $('#form-in').classList.toggle('hidden', t.dataset.tab !== 'in'); $('#form-up').classList.toggle('hidden', t.dataset.tab !== 'up'); setAuthErr('');
+}));
+$('#form-in').addEventListener('submit', async e => {
+  e.preventDefault(); setAuthErr(''); const f = e.target;
+  try { await auth.signInWithEmailAndPassword(f.email.value.trim(), f.password.value); } catch (err) { setAuthErr(friendlyAuth(err)); }
+});
+$('#form-up').addEventListener('submit', async e => {
+  e.preventDefault(); setAuthErr(''); const f = e.target;
+  const username = cleanUsername(f.username.value);
+  if (!USERNAME_RE.test(username)) { setAuthErr('Usernames are 3–15 letters, numbers or underscores.'); return; }
+  pendingSignup = { name: f.name.value.trim(), username };
+  try { await auth.createUserWithEmailAndPassword(f.email.value.trim(), f.password.value); }
+  catch (err) { pendingSignup = null; setAuthErr(friendlyAuth(err)); }
+});
+$('#btn-forgot').addEventListener('click', async () => {
+  const email = $('#form-in').email.value.trim();
+  if (!email) { setAuthErr('Type your email above first, then tap Forgot password.'); return; }
+  try { await auth.sendPasswordResetEmail(email); toast('Password reset email sent.'); } catch (err) { setAuthErr(friendlyAuth(err)); }
+});
+
+const FB_OK = typeof firebase !== 'undefined' && firebaseConfig.apiKey && !/PASTE/.test(firebaseConfig.apiKey);
+if (FB_OK) {
+  try { firebase.initializeApp(firebaseConfig); auth = firebase.auth(); db = firebase.database(); } catch (e) { console.error(e); auth = db = null; }
+}
+if (!auth) {
+  $('#setup-note').classList.remove('hidden'); $('#auth-forms').classList.add('hidden');
+} else {
+  auth.onAuthStateChanged(async user => {
+    if (user) {
+      ctx.authUid = user.uid; ctx.authName = user.displayName || (user.email || 'player').split('@')[0];
+      if (ctx.mode !== 'local') {
+        ctx.mode = 'online'; ctx.uid = ctx.authUid; ctx.name = ctx.authName;
+        try { await completeProfile(user); } catch (e) { toast(friendlyDb(e)); }
+        setupPresence(); showLobby();
+      }
+    } else {
+      ctx.authUid = null; ctx.authName = null; ctx.username = null; presenceRef = null;
+      if (ctx.mode !== 'local') { ctx.mode = null; ctx.uid = null; show('auth'); }
+    }
+  });
+}
+
+// Small debug handle (handy in the browser console): FoldPress.state(), FoldPress.aimAt(x, y), FoldPress.act('fire')
+window.FoldPress = { state: () => ({ game, secret, placement, aim, animating, pendingReveal, revealed: [...revealed], ctx: Object.assign({}, ctx) }), aimAt: (x, y) => { aim = { x, y }; render(); }, act: a => doAct(a), startLocal, showPass };
+})();
+</script>
+</body>
+</html>
