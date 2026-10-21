@@ -194,10 +194,27 @@ select option{color:#111}
 .strip.opp .cells{margin-left:auto}
 .strip.me{flex-direction:row-reverse}
 .strip.me .cells{margin-right:auto;flex-direction:row-reverse}
-.vs{color:var(--muted)}
-.vs b{color:var(--text)}
-.vs[data-lead="me"] b{color:#8fe3a4}
-.vs[data-lead="them"] b{color:#ff9a9a}
+/* tournament banner and head-to-head scoreboard */
+.item.tourney{flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px 10px;border-color:rgba(255,215,94,.4)}
+.item.tourney.won{border-color:rgba(143,227,164,.5)}.item.tourney.lost{border-color:rgba(255,154,154,.4)}
+.trow{display:flex;align-items:center;gap:8px}
+.trow .tag{font-family:'Patrick Hand',cursive;font-size:1.15rem;color:var(--accent);letter-spacing:.02em}
+.trow .tsub{flex:1;color:var(--muted);font-size:.84rem;text-align:right}
+.item.turn .trow .tsub{color:var(--accent)}
+.trow .x{margin-left:4px}
+.tscore{display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+.tscore .side{display:flex;align-items:center;gap:6px;flex:1 1 0;min-width:0;font-size:.95rem}
+.tscore .side b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tscore .side .av{flex:none;width:28px;height:28px}.tscore .side .av svg{width:28px;height:28px;display:block}
+.tscore .side.them{justify-content:flex-end}
+.tscore .num{font-family:'Patrick Hand',cursive;font-size:2rem;line-height:1;min-width:26px;text-align:center;flex:none}
+.tscore .dash{flex:none}
+.tscore .dash{color:var(--muted);font-size:1.3rem}
+.tdots{display:flex;gap:6px;align-items:center}
+.tdots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);display:inline-block;opacity:.8}
+.tdots i.w{background:#8fe3a4;border-color:#8fe3a4}.tdots i.l{background:#ff9a9a;border-color:#ff9a9a}.tdots i.now{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,215,94,.3)}.tdots i.off{opacity:.3}
+.h2hbox{background:rgba(0,0,0,.22);border:1px solid var(--card-line);border-radius:16px;padding:10px 14px 8px;margin:10px 0 4px;text-align:center}
+.h2hbox small{display:block;margin-top:4px}
 .gbar .icon{width:34px;height:34px}
 .strip{flex:none;width:100%;display:flex;align-items:center;gap:8px;padding:3px 12px;font-size:.84rem;color:var(--muted);min-height:34px}
 .strip.opp{justify-content:flex-start}
@@ -2035,7 +2052,7 @@ function renderStrips() {
   // head-to-head across every game with this opponent, or the round number on a shared phone
   const h = $('#g-h2h'), sr = series();
   if (sr && sr.n > 1 && o) { const meName = ctx.mode === 'local' && !botUid() ? esc(m.name) : 'You'; h.innerHTML = `Match ${Math.min(sr.match, sr.n)} of ${sr.n} · <b>${meName}</b> ${sr.me} – ${sr.them} <b>${esc(o.name)}</b>`; h.title = `Tournament of ${sr.n}: first to ${Math.ceil(sr.n / 2)} matches`; }
-  else if (ctx.mode === 'online' && o) { const r = h2h(oppUid(), o.name); h.innerHTML = `<b>You</b> ${r.w} – ${r.l} <b>${esc(o.name)}</b>`; h.title = 'Head to head, all games'; }
+  else if (ctx.mode === 'online' && o) { h.innerHTML = `vs <b>${esc(o.name)}</b>`; h.title = 'Tap their name above for your head-to-head'; }
   else if (ctx.mode === 'local') h.textContent = `${botUid() ? (game.tutorial ? 'Tutorial' : 'Practice, ' + botLevel().label.toLowerCase()) + ' · ' : ''}Round ${game.round || 1}`; else h.textContent = '';
   $('#social').classList.toggle('hidden', ctx.mode !== 'online' || !!$('.resultsheet'));
 }
@@ -2710,24 +2727,40 @@ function gameRow(c) {
     else if (g.turn === ctx.uid) { sub = 'Your turn'; rank = 0; mine = true; } else sub = `${on}’s turn`;
   }
   else if (g.status === 'finished') { sub = g.forfeitBy ? (g.forfeitBy === ctx.uid ? 'You forfeited' : `${on || 'They'} forfeited, you won`) : (g.winner === ctx.uid ? 'You won' : `${on || 'They'} won`); rank = 4; }
-  const sr = seriesOf(g, ctx.uid);
-  if (sr && sr.n > 1) sub = (sr.over ? `Tournament ${sr.winner === ctx.uid ? 'won' : 'lost'} ${sr.me} – ${sr.them}` : `Tournament of ${sr.n}, match ${sr.match} (${sr.me} – ${sr.them})`) + ' · ' + sub;
   if ((g.settings || {}).handicap) sub += ' · handicap';
-  const r = other ? h2h(other, op && op.name) : { w: 0, l: 0 };
-  return { c, av: avatarSVG(op ? op.tier : 'rookie', 34), title: on ? `vs ${on}${(r.w + r.l) ? ` <span class="vs"><b>${r.w}–${r.l}</b></span>` : ''}` : `Game ${esc(c)}`, sub, rank, mine, finished: g.status === 'finished', ts: g.createdAt || 0 };
+  const sr = seriesOf(g, ctx.uid);
+  return { c, g, op, on, sr: sr && sr.n > 1 ? sr : null, av: avatarSVG(op ? op.tier : 'rookie', 34), title: on ? `vs ${on}` : `Game ${esc(c)}`, sub, rank, mine, finished: g.status === 'finished', ts: g.createdAt || 0 };
+}
+// A tournament is its own banner: who leads, one dot per match (yours green, theirs red, the current one ringed), and what the game is waiting on.
+function tourneyRow(r) {
+  const { c, g, sr, on } = r, start = g.seriesStart || 1, dots = [];
+  for (let i = 0; i < sr.n; i++) {
+    const round = start + i, res = (lobby.results || {})[`${c}_${round}`];
+    let cls = 'todo'; if (res) cls = res.result === 'win' ? 'w' : 'l'; else if (round === g.round && g.status !== 'finished') cls = 'now'; else if (round === g.round && g.status === 'finished' && g.winner) cls = g.winner === ctx.uid ? 'w' : 'l';
+    if (sr.over && cls === 'todo') cls = 'off';
+    dots.push(`<i class="${cls}"></i>`);
+  }
+  const state = sr.over ? (sr.winner === ctx.uid ? 'You took it' : `${on} took it`) : `Match ${sr.match} · ${r.sub.replace(/ · handicap$/, '')}`;
+  const lead = sr.over ? '' : (sr.me === sr.them ? 'Level' : sr.me > sr.them ? 'You lead' : `${on} leads`);
+  return `<div class="item tourney row-btn${r.mine ? ' turn' : ''}${sr.over ? (sr.winner === ctx.uid ? ' won' : ' lost') : ''}" data-open="${esc(c)}">` +
+    `<div class="trow"><span class="tag">Tournament of ${sr.n}</span><span class="tsub">${state}</span>${r.finished ? `<button type="button" class="x" data-remove="${esc(c)}" aria-label="Delete from your list">✕</button>` : ''}</div>` +
+    `<div class="tscore"><span class="side"><span class="av">${avatarSVG(ctx.tier, 30)}</span><b>You</b></span><span class="num">${sr.me}</span><span class="dash">–</span><span class="num">${sr.them}</span><span class="side them"><b>${on || '?'}</b><span class="av">${r.av}</span></span></div>` +
+    `<div class="trow"><span class="tdots">${dots.join('')}</span><span class="tsub">${lead}${(g.settings || {}).handicap ? (lead ? ' · ' : '') + 'handicap on' : ''}</span></div></div>`;
 }
 function renderGamesList() {
   const el = $('#games-list'), rows = Object.keys(lobby.games).filter(c => lobby.games[c]).map(gameRow).sort((a, b) => a.rank - b.rank || b.ts - a.ts);
   const row = r => `<div class="item row-btn${r.mine ? ' turn' : ''}" data-open="${esc(r.c)}"><span class="av">${r.av}</span><div class="grow"><div>${r.title}</div><div class="sub">${r.sub}</div></div>` + (r.finished ? `<button type="button" class="x" data-remove="${esc(r.c)}" aria-label="Delete from your list">✕</button>` : '<span class="sub">›</span>') + '</div>';
-  const live = rows.filter(r => !r.finished), done = rows.filter(r => r.finished);
+  const any = r => r.sr ? tourneyRow(r) : row(r);
+  const live = rows.filter(r => !r.finished && !r.sr), tours = rows.filter(r => r.sr && !(r.finished && r.sr.over)), done = rows.filter(r => r.finished && (!r.sr || r.sr.over));
   if (!rows.length) { el.innerHTML = '<div class="empty">No games yet. Challenge a friend below, or share a code.</div>'; return; }
-  el.innerHTML = `<h4>In progress (${live.length})</h4><div class="list">${live.length ? live.map(row).join('') : '<div class="empty">Nothing in progress.</div>'}</div>` + (done.length ? `<h4>Finished (${done.length}) <button type="button" class="link" data-clear-finished="1">Delete all</button></h4><div class="list">${done.map(row).join('')}</div>` : '');
+  el.innerHTML = (tours.length ? `<h4>Tournaments (${tours.length})</h4><div class="list">${tours.map(tourneyRow).join('')}</div>` : '') +
+    `<h4>In progress (${live.length})</h4><div class="list">${live.length ? live.map(row).join('') : '<div class="empty">Nothing in progress.</div>'}</div>` +
+    (done.length ? `<h4>Finished (${done.length}) <button type="button" class="link" data-clear-finished="1">Delete all</button></h4><div class="list">${done.map(any).join('')}</div>` : '');
 }
 function renderFriends() {
   const fl = $('#friends-list'), cl = $('#challenge-list'), rl = $('#requests-list'), fids = Object.keys(lobby.friends);
   const row = (f, withPlay) => { const fr = lobby.friends[f], onl = !!lobby.presence[f], st = lobby.fstats[f], tier = tierOf(st);
-    const r = h2h(f, fr.name), vs = (r.w + r.l) ? `<span class="vs"${r.w > r.l ? ' data-lead="me"' : r.l > r.w ? ' data-lead="them"' : ''}>vs you <b>${r.w}–${r.l}</b></span>` : '';
-    return `<div class="item"><span class="av" data-uid="${esc(f)}" role="button">${avatarSVG(tier, 36)}</span><div class="grow"><div>${esc(fr.name)} <span class="dot${onl ? ' on' : ''}" style="display:inline-block;vertical-align:middle"></span></div><div class="sub">${tierLabel(tier)}${st ? ` · ${st.wins || 0}W ${st.losses || 0}L` : ''}${onl ? ' · online' : ''} ${vs}</div></div>${withPlay ? `<button type="button" class="primary" data-challenge="${esc(f)}">Play</button>` : `<button type="button" class="x" data-unfriend="${esc(f)}" aria-label="Remove friend">✕</button>`}</div>`; };
+    return `<div class="item"><span class="av" data-uid="${esc(f)}" role="button">${avatarSVG(tier, 36)}</span><div class="grow"><div>${esc(fr.name)} <span class="dot${onl ? ' on' : ''}" style="display:inline-block;vertical-align:middle"></span></div><div class="sub">${tierLabel(tier)}${onl ? ' · online' : ''}</div></div>${withPlay ? `<button type="button" class="primary" data-challenge="${esc(f)}">Play</button>` : `<button type="button" class="x" data-unfriend="${esc(f)}" aria-label="Remove friend">✕</button>`}</div>`; };
   cl.innerHTML = fids.length ? fids.map(f => row(f, true)).join('') : '<div class="empty">No friends yet. Add them on the Friends tab.</div>';
   fl.innerHTML = fids.length ? fids.map(f => row(f, false)).join('') : '<div class="empty">No friends yet. Add them by username above.</div>';
   const rids = Object.keys(lobby.requests);
@@ -2941,10 +2974,13 @@ async function showRanks(stats, who, uid) {
     return `<div class="rank${on ? ' on' : ''}${done ? ' done' : ''}">${avatarSVG(id, 44)}<div class="grow"><b>${t.label}</b><span>${t.blurb}</span><small>${req}</small></div>${on ? '<em>you</em>' : done ? '<em>✓</em>' : ''}</div>`; };
   const ladder = LADDER.map(row).join('') + `<h4 style="margin-top:10px">The other way</h4>` + row('splat');
   const head = `<div class="rankhead">${avatarSVG(cur, 84)}<div><b>${esc(who || ctx.name || '')}</b><span class="tier">${tierLabel(cur)}</span><div class="chips" style="margin-top:6px"><span class="chip"><b>${st.wins}</b> won</span><span class="chip"><b>${st.losses}</b> lost</span><span class="chip"><b>${st.games ? Math.round(st.ratio * 100) : 0}%</b> win rate</span></div></div></div>`;
+  // head to head with a friend: every finished game between you, as a scoreboard
+  const hh = !mine && uid ? h2h(uid, who) : null;
+  const h2hBox = hh ? `<div class="h2hbox"><div class="tscore"><span class="side"><span class="av">${avatarSVG(ctx.tier, 30)}</span><b>You</b></span><span class="num">${hh.w}</span><span class="dash">–</span><span class="num">${hh.l}</span><span class="side them"><b>${esc(who)}</b><span class="av">${avatarSVG(cur, 30)}</span></span></div><small class="sub">${hh.w + hh.l ? `Head to head, ${hh.w + hh.l} game${hh.w + hh.l === 1 ? '' : 's'} between you` : 'No games between you yet'}</small></div>` : '';
   const nextBox = next
     ? `<div class="nextbox"><div class="row between"><span>Next: <b>${next.label}</b></span><span class="sub">${pct}%</span></div><div class="bar"><div style="width:${pct}%"></div></div><ul>${needs.length ? needs.map(n => `<li>${n}</li>`).join('') : '<li>One more finished game and you’re there.</li>'}</ul></div>`
     : `<div class="nextbox"><b>Top of the ladder.</b> Keep the crown by keeping your win rate above 70%.</div>`;
-  overlay(`<h2>${mine ? 'Your rank' : esc(who) + '’s rank'}</h2>${head}${mine ? nextBox : ''}${badges}${unlocks}<div class="ranks">${ladder}</div>`, [{ label: 'Close', cls: 'secondary', act: hideOverlay }], { wide: true });
+  overlay(`<h2>${mine ? 'Your rank' : esc(who) + '’s rank'}</h2>${head}${h2hBox}${mine ? nextBox : ''}${badges}${unlocks}<div class="ranks">${ladder}</div>`, [{ label: 'Close', cls: 'secondary', act: hideOverlay }], { wide: true });
 }
 $('#lobby-av').addEventListener('click', () => showRanks(ctx.stats));
 $('#strip-me').addEventListener('click', () => { if (ctx.mode === 'online') showRanks(ctx.stats); });
