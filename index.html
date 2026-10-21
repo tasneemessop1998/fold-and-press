@@ -186,6 +186,8 @@ select option{color:#111}
 .gbar .code{font-family:'Patrick Hand',cursive;font-size:1.25rem;letter-spacing:.1em;color:var(--accent)}
 .gbar .h2h{flex:1;font-family:'Patrick Hand',cursive;font-size:1.25rem;color:var(--accent);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gbar .h2h b{font-weight:400;color:var(--text)}
+.gbar .h2h.two{display:flex;flex-direction:column;font-size:1rem;line-height:1.05;white-space:nowrap}
+.gbar .h2h.two span{overflow:hidden;text-overflow:ellipsis}
 .strip .who{display:inline-flex;align-items:center;gap:6px;min-width:0}
 .strip .who b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}
 .strip .cells{display:inline-flex;gap:4px}
@@ -1176,9 +1178,12 @@ function applyHitsUpdates(upd, code, victimUid, figPath, figs, hits, shooterUid,
 }
 
 /* ---------- SVG drawing ---------- */
-function paperBG(y0) {
-  const p = settings().paper, h = halfH(), W = SHEET_W, col = paperHex(paperAllowed(prefs.paper, achCache) ? prefs.paper : 'cream');
-  const rnd = mulberry32(11 + y0);
+// The paper texture is drawn once in whole-sheet coordinates (y from 0 to the full height) and the same markup goes into both halves,
+// whose viewBoxes crop it. Lines, quilting, facets and the napkin's border all run straight across the middle, so nothing betrays the fold
+// unless the Fold line setting is on.
+function paperBG() {
+  const p = settings().paper, y0 = 0, h = sheetH(), W = SHEET_W, col = paperHex(paperAllowed(prefs.paper, achCache) ? prefs.paper : 'cream');
+  const rnd = mulberry32(11);
   let bg = '';
   if (p === 'tracing') {
     // translucent tracing paper: a grey sheet with fine diagonal fibres and a soft sheen
@@ -2029,7 +2034,7 @@ function render() {
   items.sort((a, b) => a.layer - b.layer);
   const body = items.map(i => i.svg).join('');
   applySheet();
-  svgTop.innerHTML = paperBG(0) + body; svgBot.innerHTML = paperBG(halfH()) + body;
+  const bg = paperBG(); svgTop.innerHTML = bg + body; svgBot.innerHTML = bg + body;
   renderStrips(); $('#status').innerHTML = statusHTML(); renderActions(); syncTimer();
   const coach = coachHTML(); if ($('#coach').innerHTML !== coach) $('#coach').innerHTML = coach;
   freshIds.clear(); sizePaper(); scheduleBot();
@@ -2051,7 +2056,8 @@ function renderStrips() {
   $('#strip-me').innerHTML = m ? strip(ctx.uid, m, ctx.mode === 'local' && !botUid() ? esc(m.name) : 'You') : '';
   // head-to-head across every game with this opponent, or the round number on a shared phone
   const h = $('#g-h2h'), sr = series();
-  if (sr && sr.n > 1 && o) { const meName = ctx.mode === 'local' && !botUid() ? esc(m.name) : 'You'; h.innerHTML = `Match ${Math.min(sr.match, sr.n)} of ${sr.n} · <b>${meName}</b> ${sr.me} – ${sr.them} <b>${esc(o.name)}</b>`; h.title = `Tournament of ${sr.n}: first to ${Math.ceil(sr.n / 2)} matches`; }
+  h.classList.toggle('two', !!(sr && sr.n > 1 && o));
+  if (sr && sr.n > 1 && o) { const meName = ctx.mode === 'local' && !botUid() ? esc(m.name) : 'You'; h.innerHTML = `<span>Match ${Math.min(sr.match, sr.n)} of ${sr.n}</span><span><b>${meName}</b> ${sr.me} – ${sr.them} <b>${esc(o.name)}</b></span>`; h.title = `Tournament of ${sr.n}: first to ${Math.ceil(sr.n / 2)} matches`; }
   else if (ctx.mode === 'online' && o) { h.innerHTML = `vs <b>${esc(o.name)}</b>`; h.title = 'Tap their name above for your head-to-head'; }
   else if (ctx.mode === 'local') h.textContent = `${botUid() ? (game.tutorial ? 'Tutorial' : 'Practice, ' + botLevel().label.toLowerCase()) + ' · ' : ''}Round ${game.round || 1}`; else h.textContent = '';
   $('#social').classList.toggle('hidden', ctx.mode !== 'online' || !!$('.resultsheet'));
