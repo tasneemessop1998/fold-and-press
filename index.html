@@ -1024,10 +1024,10 @@ const FIELDS = [
   ['steadies', 'steadies', 'Steady hands each', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']]],
   ['peeks', 'peeks', 'Peeks each', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']]],
   ['series', 'series', 'Matches', [[1, 'Single game'], [3, 'Tournament of 3'], [5, 'Tournament of 5'], [7, 'Tournament of 7']]],
-  ['hsb', 'hsBonus', 'Headshot bonus', [['choice', 'One free power, your choice'], ['hide', 'Free invisibility'], ['armor', 'Free armour'], ['off', 'Off']]]
+  ['hsb', 'hsBonus', 'Headshot bonus', [['choice', 'One free power, any of them'], ['off', 'Off']]]
 ];
 const GROUPS = [['Board', ['fig', 'size', 'blob', 'wob', 'series', 'vis', 'decoys', 'dead']], ['Play', ['timer', 'quarter', 'again', 'paper', 'fade', 'crease']], ['Powers', ['powerUses', 'loadout', 'hides', 'armors', 'moves', 'shrinks', 'steadies', 'peeks', 'hsb']]];
-const toVal = (key, v) => key === 'hsBonus' ? (v === true ? 'choice' : v === false ? 'off' : String(v || 'choice')) : typeof v === 'boolean' ? (v ? '1' : '0') : String(v);
+const toVal = (key, v) => key === 'hsBonus' ? (v === false || v === 'off' ? 'off' : 'choice') : typeof v === 'boolean' ? (v ? '1' : '0') : String(v);
 const fieldById = id => FIELDS.find(f => f[0] === id);
 function settingsHTML(p, cur) {
   cur = Object.assign({}, DEFAULTS, cur || {});
@@ -1385,7 +1385,8 @@ const movesAllowed = () => +settings().moves || 0;
 const hidesAllowed = () => visibleMode() ? (+settings().hides || 0) : 0;
 const armorsAllowed = () => +settings().armors || 0;
 // What a headshot earns: 'choice', 'hide', 'armor' or 'off'. Invisibility needs visible stickmen, so in battleship mode a choice becomes armour.
-const bonusKind = () => { const v = settings().hsBonus, k = v === true ? 'choice' : v === false ? 'off' : (v || 'choice'); if (!visibleMode() && k === 'hide') return 'off'; if (!visibleMode() && k === 'choice') return 'armor'; return k; };
+// What a headshot earns: every power to choose from ('choice'), or nothing ('off'). Older games that said "hide" or "armour" now offer the full choice too.
+const bonusKind = () => { const v = settings().hsBonus; return v === false || v === 'off' ? 'off' : 'choice'; };
 const bonusOn = () => bonusKind() !== 'off';
 const movesLeft = uid => powerLeft(uid, 'move');
 const hidesLeft = uid => powerLeft(uid, 'hide');
@@ -1884,7 +1885,8 @@ function reveal(id) {
   revealed.add(id); freshIds.add(id); markSeen(id);
   const s = game.shots[id], hits = s.hits || [], shooter = players()[s.by] || { name: 'Someone' }, mine = s.by === ctx.uid;
   const real = hits.filter(h => !h.decoy && !h.light && !h.armor), decoys = hits.filter(h => h.decoy && !h.light), armored = hits.filter(h => h.armor && !h.light), grazed = s.light && hits.length > 0;
-  const headshot = real.length > 0 && s.acc === 100, on = esc(oppName()), sn = esc(shooter.name), victim = mine ? oppUid() : ctx.uid;
+  // a dead-centre hit is a headshot whether or not armour took it: the armour breaks, the stickman stands, and the shooter still earns the free power
+  const headshot = real.length > 0 && s.acc === 100, armorHead = !headshot && armored.length > 0 && s.acc === 100 && !grazed, on = esc(oppName()), sn = esc(shooter.name), victim = mine ? oppUid() : ctx.uid;
   if (headshot) headshotId = id;
   if (armored.length) { armored.forEach(h => shieldBreaks.add(victim + ':' + h.id)); setTimeout(() => { armored.forEach(h => shieldBreaks.delete(victim + ':' + h.id)); render(); }, 1300); }
   render();
@@ -1894,6 +1896,7 @@ function reveal(id) {
   decoys.forEach(h => prankRun(victim, h));
   if (grazed) { sfx.miss(); announce('Light press!', 'miss', 1500); announce(mine ? 'Too soft to count' : `${sn} pressed too lightly`, 'miss', 1300); }
   else if (headshot) { headshotFx(); sfx.headshot(); buzz([30, 20, 30, 20, 120]); announce('HEADSHOT!', 'hs', 2000); if (s.pts) announce(`+${s.pts}`, 'turn', 900); }
+  else if (armorHead) { headshotFx(); sfx.shieldbreak(); buzz([30, 20, 30, 20, 120]); announce('HEADSHOT!', 'hs', 1800); announce(mine ? 'Their armour took it' : 'Your armour took it', 'armor', 1500); if (s.pts) announce(`+${s.pts}`, 'turn', 900); }
   else if (real.length) { sfx.hit(); buzz([40, 30, 80]); announce(mine ? `Splat!${accTxt}${ptsTxt}` : `${sn} got you${accTxt}`, 'hit'); }
   else if (armored.length) { sfx.shieldbreak(); buzz([20, 20, 60]); announce(mine ? 'Armour! It held' : 'Your armour held', 'armor', 1600); }
   else if (decoys.length) { sfx.prank(); announce(mine ? 'Decoy! Fooled you' : 'Decoy! They fell for it', 'decoy', 1700); }
@@ -1906,7 +1909,7 @@ function reveal(id) {
   checkAchievements({ shot: s, hits, mine, victim });
   if (game.status === 'finished') { if (!replay) setTimeout(endSequence, 900); return; }
   if (replay) return;
-  if (mine && headshot && hasBonus(ctx.uid)) { pickMode = 'bonus'; selectedFig = null; announce(bonusKind() === 'armor' ? 'Free armour!' : bonusKind() === 'hide' ? 'Free invisibility!' : 'Free power!', 'ghost', 1800); render(); }
+  if (mine && hasBonus(ctx.uid)) { pickMode = 'bonus'; selectedFig = null; announce('Free power!', 'ghost', 1800); render(); }
   else if (oppDeciding()) announce(`${on} gets a headshot bonus`, 'ghost', 1600);
   else if (turnUid() === ctx.uid) announce(yourTurnText(), 'turn', 1400);
 }
@@ -2038,7 +2041,7 @@ function render() {
     if (moved) { const q = V(home.x, home.y); push(1, `<circle cx="${q[0]}" cy="${(q[1] - 4 * s).toFixed(1)}" r="${(40 * s + 6).toFixed(1)}" fill="none" stroke="#9aa39b" stroke-width="1.5" stroke-dasharray="4 4"/>`); }
     if (f.tmp && effectOn(f.tmp, oppTurnsSeen(ctx.uid))) { const q = V(f.x, f.y); push(0, `<g opacity=".25">${figSVG(q[0], q[1], s, { id: 'home' + f.id, seed: figSeed(ctx.uid, f.id, game.round), cls: 'theirs' })}</g>`); }   // where it will walk back to
     const ghost = game.status === 'playing' && isHiddenFig(f, ctx.uid);
-    push(1, figSVG(p[0], p[1], s, { id: f.id, seed: figSeed(ctx.uid, f.id, game.round), cls: 'mine' + (canDrag ? ' drag' : '') + (ghost ? ' ghost' : '') + (moved ? ' preview' : '') + ((pickMode === 'hide' || pickMode === 'bonus' || pickMode === 'armor' || pickMode === 'shrink') ? ' pick' : ''), ghost, selected: selectedFig === f.id, slide: moved ? null : slideFor(ctx.uid, f), shield: !!f.armor && !shieldBreaks.has(ctx.uid + ':' + f.id), shieldBreak: shieldBreaks.has(ctx.uid + ':' + f.id), decoyMark: !!f.decoy, shrunk: game.status === 'playing' && isShrunkFig(f, ctx.uid), dance: killDance && killDance.uid === ctx.uid ? killDance.kind : false }));
+    push(1, figSVG(p[0], p[1], s, { id: f.id, seed: figSeed(ctx.uid, f.id, game.round), cls: 'mine' + (canDrag ? ' drag' : '') + (ghost ? ' ghost' : '') + (moved ? ' preview' : '') + ((pickMode === 'hide' || pickMode === 'bonus' || pickMode === 'bonushide' || pickMode === 'bonusarmor' || pickMode === 'bonusshrink' || pickMode === 'armor' || pickMode === 'shrink') ? ' pick' : ''), ghost, selected: selectedFig === f.id, slide: moved ? null : slideFor(ctx.uid, f), shield: !!f.armor && !shieldBreaks.has(ctx.uid + ':' + f.id), shieldBreak: shieldBreaks.has(ctx.uid + ':' + f.id), decoyMark: !!f.decoy, shrunk: game.status === 'playing' && isShrunkFig(f, ctx.uid), dance: killDance && killDance.uid === ctx.uid ? killDance.kind : false }));
   });
   // tracing paper: your opponent's stickmen show through faintly, mirrored onto your half, where the ink would need to land
   if ((settings().paper === 'tracing' || peekOn()) && visibleMode() && oUid && figsReady(oUid) && game.status === 'playing') {
@@ -2121,7 +2124,10 @@ function statusHTML() {
       if (pickMode === 'hide') return selectedFig ? `Make this one invisible for ${on}’s next ${HIDE_TURNS} turns?${freeTxt}` : `<b>Invisibility.</b> Tap one of your stickmen to hide it from ${on} for ${HIDE_TURNS} turns.${freeTxt}`;
       if (pickMode === 'armor') return selectedFig ? `Armour this one? It survives one hit. Only you will know which.${freeTxt}` : `<b>Armour.</b> Tap one of your stickmen. It survives one hit; ${on} will know you armoured someone, not who.${freeTxt}`;
       if (pickMode === 'shrink') return selectedFig ? `Shrink this one to a tiny head for ${on}’s next ${HIDE_TURNS} turns?${freeTxt}` : `<b>Shrink.</b> Tap one of your stickmen. For ${on}’s next ${HIDE_TURNS} turns it’s just a tiny head.${freeTxt}`;
-      if (pickMode === 'bonus') { const k = bonusKind(); return selectedFig ? (k === 'armor' ? 'Armour this one for free?' : k === 'hide' ? `Hide this one for ${on}’s next ${HIDE_TURNS} turns? It’s free.` : 'Pick a power for it, free.') : `<b>Headshot bonus!</b> Tap one of your stickmen and pick a free power${k === 'armor' ? ' (armour)' : k === 'hide' ? ' (invisibility)' : ''}${k === 'choice' ? ', or take a Steady hand or a Peek for yourself' : ''}, or skip. ${on} waits until you decide.`; }
+      if (pickMode === 'bonus') return selectedFig ? 'Pick a free power for this one, or Move it.' : `<b>Headshot bonus!</b> One free power, any of them. Pick one below (or tap a stickman first), or skip. ${on} waits until you decide.`;
+      if (pickMode === 'bonushide') return selectedFig ? `Hide this one from ${on} for ${HIDE_TURNS} turns? It’s free.` : `<b>Free invisibility.</b> Tap one of your stickmen to hide it from ${on} for ${HIDE_TURNS} turns.`;
+      if (pickMode === 'bonusarmor') return selectedFig ? 'Armour this one for free? It survives one hit.' : '<b>Free armour.</b> Tap one of your stickmen. It survives one hit; only you will know which.';
+      if (pickMode === 'bonusshrink') return selectedFig ? `Shrink this one to a tiny head for ${on}’s next ${HIDE_TURNS} turns? It’s free.` : `<b>Free shrink.</b> Tap one of your stickmen. For ${on}’s next ${HIDE_TURNS} turns it’s just a tiny head.`;
       if (oppDeciding()) return `${on} got a headshot and gets a free power. Your turn starts once ${isBot(oppUid()) ? 'it decides' : 'they decide'}${ctx.mode === 'online' ? '. Safe to close and come back later' : ''}.`;
       if (turnUid() === ctx.uid) {
         const steadyOn = m.steady ? ' <span class="hc">Steady hand on: this press can’t slip.</span>' : '';
@@ -2157,10 +2163,18 @@ function renderActions() {
     else if (pickMode === 'armor') { a.push(btn('Cancel', 'cancelpick', 'secondary')); if (selectedFig) a.push(btn('Armour it', 'confirmarmor', 'primary')); }
     else if (pickMode === 'shrink') { a.push(btn('Cancel', 'cancelpick', 'secondary')); if (selectedFig) a.push(btn('Shrink it', 'confirmshrink', 'primary')); }
     else if (pickMode === 'bonus') {
-      const k = bonusKind(); a.push(btn('Skip it', 'skipbonus', 'secondary'));
-      if (!selectedFig && k === 'choice') { if (settings().wobble !== 'steady' && !me().steady) a.push(btn(`${I.steady}Steady`, 'confirmbonussteady', 'primary')); if (visibleMode()) a.push(btn(`${I.peek}Peek`, 'confirmbonuspeek', 'primary')); }
-      if (selectedFig) { if (k !== 'armor' && visibleMode()) a.push(btn(`${I.ghost}Hide`, 'confirmbonus', 'primary')); if (k !== 'hide') a.push(btn(`${I.shield}Armour`, 'confirmbonusarmor', 'primary')); if (k === 'choice') { a.push(btn(`${I.shrinkic}Shrink`, 'confirmbonusshrink', 'primary')); a.push(btn(`${I.run}Move`, 'pickbonusmove', 'primary')); } }
+      // every power on offer at once; the stickman ones ask you to tap a stickman next (or act on one you have already tapped)
+      a.push(btn('Skip it', 'skipbonus', 'secondary'));
+      if (visibleMode()) a.push(btn(`${I.ghost}Hide`, selectedFig ? 'confirmbonus' : 'bonuspickhide', 'primary'));
+      a.push(btn(`${I.shield}Armour`, selectedFig ? 'confirmbonusarmor' : 'bonuspickarmor', 'primary'));
+      a.push(btn(`${I.shrinkic}Shrink`, selectedFig ? 'confirmbonusshrink' : 'bonuspickshrink', 'primary'));
+      a.push(btn(`${I.run}Move`, 'pickbonusmove', 'primary'));
+      if (settings().wobble !== 'steady' && !me().steady) a.push(btn(`${I.steady}Steady`, 'confirmbonussteady', 'primary'));
+      if (visibleMode()) a.push(btn(`${I.peek}Peek`, 'confirmbonuspeek', 'primary'));
     }
+    else if (pickMode === 'bonushide') { a.push(btn('Back', 'bonusback', 'secondary')); if (selectedFig) a.push(btn('Hide it (free)', 'confirmbonus', 'primary')); }
+    else if (pickMode === 'bonusarmor') { a.push(btn('Back', 'bonusback', 'secondary')); if (selectedFig) a.push(btn('Armour it (free)', 'confirmbonusarmor', 'primary')); }
+    else if (pickMode === 'bonusshrink') { a.push(btn('Back', 'bonusback', 'secondary')); if (selectedFig) a.push(btn('Shrink it (free)', 'confirmbonusshrink', 'primary')); }
     else if (oppDeciding()) { /* nothing to do until they decide */ }
     else if (turnUid() === ctx.uid) {
       const pl = powersLeft(ctx.uid), steadyBtn = pl.steady > 0 && settings().wobble !== 'steady' && !me().steady ? btn(`${I.steady}Steady <small>${pl.steady}</small>`, 'usesteady', 'secondary') : '';
@@ -2223,7 +2237,8 @@ async function doAct(act, b) {
     else if (act === 'confirmarmor' || act === 'confirmbonusarmor') { if (!selectedFig) return; const id = selectedFig, free = act === 'confirmbonusarmor'; pickMode = null; selectedFig = null; if (b) b.disabled = true; render(); sfx.shield(); await store.armor(id, free); }
     else if (act === 'confirmshrink' || act === 'confirmbonusshrink') { if (!selectedFig) return; const id = selectedFig, free = act === 'confirmbonusshrink'; pickMode = null; selectedFig = null; if (b) b.disabled = true; render(); sfx.shrink(); await store.shrink(id, free); }
     else if (act === 'pickbonusmove') { pickMode = 'bonusmove'; pendingMove = null; selectedFig = null; render(); }
-    else if (act === 'bonusback') { pickMode = 'bonus'; pendingMove = null; render(); }
+    else if (act === 'bonuspickhide' || act === 'bonuspickarmor' || act === 'bonuspickshrink') { pickMode = 'bonus' + act.slice(9); selectedFig = null; render(); }
+    else if (act === 'bonusback') { pickMode = 'bonus'; pendingMove = null; selectedFig = null; render(); }
     else if (act === 'confirmbonusmove') { if (!pendingMove) return; const m = pendingMove; pickMode = null; pendingMove = null; if (b) b.disabled = true; render(); sfx.slide(); await store.usePower('move', m.id, { x: m.x, y: m.y }, true); }
     else if (act === 'usesteady' || act === 'confirmbonussteady') { const free = act === 'confirmbonussteady'; if (free) { pickMode = null; selectedFig = null; } if (b) b.disabled = true; render(); sfx.tick(); await store.usePower('steady', null, null, free); }
     else if (act === 'usepeek' || act === 'confirmbonuspeek') { const free = act === 'confirmbonuspeek'; if (free) { pickMode = null; selectedFig = null; } if (b) b.disabled = true; startPeek(); await store.usePower('peek', null, null, free); }
@@ -2504,20 +2519,43 @@ function stopParty() { cancelAnimationFrame(party.raf); party.raf = 0; party.dan
 function closeResult() { const r = $('.resultsheet'); if (r) r.remove(); }
 function showSplat(done) {
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
+  // The loser's stickman, big, with every limb on its own hinge: hit, stagger, clutch the chest, knees give, keel over, twitch.
   const fx = document.createElement('div'); fx.className = 'splatfx';
-  fx.innerHTML = `<svg viewBox="0 0 320 420"><g transform="translate(92,300) scale(3.05)"><g class="bigman">` +
-    `<animateTransform attributeName="transform" type="rotate" values="0 0 30;-8 0 30;86 0 30" keyTimes="0;0.18;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.6 0 0.9 0.7" begin="0.75s" dur="1s" fill="freeze"/>` +
-    `<g fill="none" stroke="#2d2d2d" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="0" cy="-27" r="8.5" fill="#fbf8ec"/><path d="M0,-18.5 V8 M0,-11 L-15,-2 M0,-11 L15,-4 M0,8 L-11,30 M0,8 L11,30"/></g><g fill="#2d2d2d"><circle cx="-3" cy="-28.5" r="1.3"/><circle cx="3" cy="-28.5" r="1.3"/></g><ellipse cx="0" cy="-22.5" rx="2.2" ry="3" fill="#2d2d2d"/>` +
+  const R = (vals, cx, cy, begin, dur, extra) => `<animateTransform attributeName="transform" type="rotate" values="${vals.split(';').map(v => `${v.trim()} ${cx} ${cy}`).join(';')}" begin="${begin}s" dur="${dur}s" fill="freeze"${extra || ''}/>`;
+  const T = (vals, begin, dur) => `<animateTransform attributeName="transform" type="translate" values="${vals}" begin="${begin}s" dur="${dur}s" fill="freeze"/>`;
+  const A = (attr, vals, begin, dur) => `<animate attributeName="${attr}" values="${vals}" begin="${begin}s" dur="${dur}s" fill="freeze"/>`;
+  const ink = '#2d2d2d', red = '#c41e1e';
+  fx.innerHTML = `<svg viewBox="0 0 320 420"><g transform="translate(92,300) scale(3.05)">` +
+    // dust where he lands
+    `<g class="dust" opacity="0">${A('opacity', '0;.55;0', 2.82, 0.55)}${[[18, 30], [31, 29], [44, 31]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#c9c2ae">${A('r', '2;7', 2.82, 0.5)}</circle>`).join('')}</g>` +
+    `<g class="bigman">` +
+    `<g>${T('0 0;-3 -1;2 0;0 0', 0.75, 0.3)}${T('0 0;0 7;0 10', 1.75, 0.5)}` +                                     // the jolt, then the drop as the knees go
+    `<g>${R('0;-7;8;-6;5;-2;0', 0, 30, 0.95, 0.8)}${R('0;96;84;90', 0, 30, 2.3, 0.6, ' calcMode="spline" keyTimes="0;0.6;0.8;1" keySplines="0.6 0 1 0.6;0.3 0 0.7 1;0.3 0 0.7 1"')}` +   // stagger, then keel over about the feet
+    `<g fill="none" stroke="${ink}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">` +
+    `<path d="M0,-18.5 V8"/>` +                                                                                     // torso
+    `<g>${R('0;-28;12;0', 0, -18.5, 0.75, 0.55)}${R('0;30', 0, -18.5, 1.75, 0.5)}${R('30;46;38', 0, -18.5, 2.9, 0.5)}` +   // head: snaps back, droops, lolls
+    `<circle cx="0" cy="-27" r="8.5" fill="#fbf8ec"/>` +
+    `<g fill="${ink}" stroke="none"><circle cx="-3" cy="-28.5" r="1.3">${A('r', '1.3;2.1', 0.75, 0.12)}${A('opacity', '1;0', 2.9, 0.1)}</circle><circle cx="3" cy="-28.5" r="1.3">${A('r', '1.3;2.1', 0.75, 0.12)}${A('opacity', '1;0', 2.9, 0.1)}</circle></g>` +
+    `<g stroke="${ink}" stroke-width="1.1" opacity="0">${A('opacity', '0;1', 2.9, 0.1)}<path d="M-4.6,-30.1 L-1.4,-26.9 M-1.4,-30.1 L-4.6,-26.9 M1.4,-30.1 L4.6,-26.9 M4.6,-30.1 L1.4,-26.9"/></g>` +     // X eyes
+    `<ellipse cx="0" cy="-22.5" rx="2.2" ry="3" fill="${ink}" stroke="none">${A('ry', '3;4.6', 0.75, 0.15)}${A('ry', '4.6;1.6', 2.9, 0.3)}</ellipse>` +
+    `<path d="M1,-21.5 q2.4,2.6 1.6,5.6" stroke="#d04a4a" stroke-width="1.6" opacity="0">${A('opacity', '0;1', 3.0, 0.2)}</path>` +                                    // tongue
+    `</g>` +
+    `<g>${R('0;70', 0, -11, 0.75, 0.2)}${R('70;-60;-55', 0, -11, 0.95, 0.5)}${R('-55;-40', 0, -11, 1.75, 0.5)}<path d="M0,-11 L-15,-2"/></g>` +                                       // left arm: flies up, clutches the chest, hangs
+    `<g>${R('0;-80', 0, -11, 0.75, 0.2)}${R('-80;-35;-95;-50;-85', 0, -11, 0.95, 0.8)}${R('-85;20', 0, -11, 1.75, 0.5)}${R('20;40;20;32', 0, -11, 3.0, 0.5)}<path d="M0,-11 L15,-4"/></g>` +   // right arm: flails, hangs, twitches
+    `<g>${R('0;-14;10;-8;0', 0, 8, 0.95, 0.8)}${R('0;40', 0, 8, 1.75, 0.5)}<path d="M0,8 L-6,19"/><g>${R('0;-75', -6, 19, 1.75, 0.5)}<path d="M-6,19 L-11,30"/></g></g>` +              // left leg: steps, then the knee goes
+    `<g>${R('0;12;-10;8;0', 0, 8, 0.95, 0.8)}${R('0;-40', 0, 8, 1.75, 0.5)}<path d="M0,8 L6,19"/><g>${R('0;75', 6, 19, 1.75, 0.5)}${R('75;58;75;66', 6, 19, 3.1, 0.45)}<path d="M6,19 L11,30"/></g></g>` +   // right leg, with a twitch at the end
+    `</g>` +
     `<g class="splatter" opacity="0"><animate attributeName="opacity" from="0" to="1" begin="0.72s" dur="0.12s" fill="freeze"/><animateTransform attributeName="transform" type="scale" from="0.2" to="1" begin="0.72s" dur="0.45s" calcMode="spline" keySplines="0.2 0.9 0.3 1.3" keyTimes="0;1" fill="freeze"/>` +
-    `<path d="M-14,-8 Q-6,-20 2,-12 Q10,-22 14,-10 Q22,-6 14,2 Q20,12 8,10 Q4,20 -2,10 Q-12,16 -12,4 Q-22,0 -14,-8z" fill="#c41e1e" fill-opacity=".95"/><circle cx="19" cy="-14" r="2.2" fill="#c41e1e"/><circle cx="-18" cy="6" r="1.8" fill="#c41e1e"/><circle cx="6" cy="20" r="1.6" fill="#c41e1e"/></g>` +
-    `<g class="drip" opacity="0"><animate attributeName="opacity" from="0" to="1" begin="1s" dur="0.3s" fill="freeze"/><path d="M-6,8 q0,10 2,16 M4,10 q0,8 3,14" fill="none" stroke="#c41e1e" stroke-width="2.4" stroke-linecap="round"/></g>` +
-    `</g></g>` +
+    `<path d="M-14,-8 Q-6,-20 2,-12 Q10,-22 14,-10 Q22,-6 14,2 Q20,12 8,10 Q4,20 -2,10 Q-12,16 -12,4 Q-22,0 -14,-8z" fill="${red}" fill-opacity=".95"/><circle cx="19" cy="-14" r="2.2" fill="${red}"/><circle cx="-18" cy="6" r="1.8" fill="${red}"/><circle cx="6" cy="20" r="1.6" fill="${red}"/></g>` +
+    `<g class="drip" opacity="0"><animate attributeName="opacity" from="0" to="1" begin="1s" dur="0.3s" fill="freeze"/><path d="M-6,8 q0,10 2,16 M4,10 q0,8 3,14" fill="none" stroke="${red}" stroke-width="2.4" stroke-linecap="round"/></g>` +
+    `</g></g></g>` +
     `<g class="bigblob" opacity="0"><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.92;1" begin="0.25s" dur="0.52s" fill="freeze"/><animateTransform attributeName="transform" type="translate" from="250 -250" to="0 0" begin="0.25s" dur="0.5s" calcMode="spline" keySplines="0.2 0.9 0.3 1" keyTimes="0;1" fill="freeze"/>` +
-    `<g transform="translate(-68,38)"><path d="M160,232 Q150,210 168,206 Q186,196 190,214 Q208,220 196,236 Q198,254 180,250 Q166,262 160,246 Q142,250 146,236 Q136,224 160,232z" fill="#c41e1e"/><circle cx="206" cy="206" r="4" fill="#c41e1e"/><circle cx="140" cy="214" r="3" fill="#c41e1e"/></g></g></svg>`;
+    `<g transform="translate(-68,38)"><path d="M160,232 Q150,210 168,206 Q186,196 190,214 Q208,220 196,236 Q198,254 180,250 Q166,262 160,246 Q142,250 146,236 Q136,224 160,232z" fill="${red}"/><circle cx="206" cy="206" r="4" fill="${red}"/><circle cx="140" cy="214" r="3" fill="${red}"/></g></g></svg>`;
   $('#screen-game').appendChild(fx);
   setTimeout(() => { sfx.hit(); buzz([80, 40, 160]); }, 760); setTimeout(() => sfx.lose(), 1100);
   setTimeout(() => announce('SPLAT', 'bad', 1500), 820);
-  setTimeout(() => { fx.remove(); done(); }, 2900);
+  setTimeout(() => { sfx.press(); buzz([60, 30, 40]); }, 2880);
+  setTimeout(() => { fx.remove(); done(); }, 3700);
 }
 function showResult() {
   const w = players()[game.winner]; if (!w) return;
@@ -2611,7 +2649,7 @@ svgBot.addEventListener('pointerdown', e => {
     const h = editing() ? f : figPosNow(f, ctx.uid), v = V(h.x, h.y);
     drag = { id: f.id, dx: v[0] - pt.x, dy: v[1] - pt.y, el: own, tilt: own.dataset.tilt || 0, vx: null, vy: null };
     svgBot.setPointerCapture(e.pointerId); own.classList.add('lift'); e.preventDefault();
-  } else if ((pickMode === 'hide' || pickMode === 'bonus' || pickMode === 'armor' || pickMode === 'shrink') && settled()) {
+  } else if ((pickMode === 'hide' || pickMode === 'bonus' || pickMode === 'bonushide' || pickMode === 'bonusarmor' || pickMode === 'bonusshrink' || pickMode === 'armor' || pickMode === 'shrink') && settled()) {
     if (!own) return;
     const f = myFigs().find(x => x.id === own.dataset.id); if (!f) return;
     selectedFig = selectedFig === f.id ? null : f.id; sfx.tick(); render();
