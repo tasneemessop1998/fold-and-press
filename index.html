@@ -1193,22 +1193,57 @@ function paperBG() {
     return `<defs><linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".05"/></linearGradient></defs>` + bg;
   }
   if (p === 'napkin') {
-    // a paper napkin: bright white, quilted diamond embossing, a scalloped border
-    bg += `<rect x="0" y="${y0 - 2}" width="${W}" height="${h + 4}" fill="#ffffff"/><rect x="0" y="${y0 - 2}" width="${W}" height="${h + 4}" fill="${col}" fill-opacity=".35"/>`;
-    let hi = '', sh = '';
-    for (let x = -h; x < W + h; x += 40) { hi += `<line x1="${x}" y1="${y0 + h}" x2="${x + h}" y2="${y0}"/><line x1="${x}" y1="${y0}" x2="${x + h}" y2="${y0 + h}"/>`; sh += `<line x1="${x + 1.5}" y1="${y0 + h + 1.5}" x2="${x + h + 1.5}" y2="${y0 + 1.5}"/><line x1="${x + 1.5}" y1="${y0 + 1.5}" x2="${x + h + 1.5}" y2="${y0 + h + 1.5}"/>`; }
-    bg += `<g stroke="#cfc8b4" stroke-width="1.3" stroke-opacity=".95">${sh}</g><g stroke="#ffffff" stroke-width="1.5">${hi}</g>`;
-    bg += `<rect x="14" y="${y0 + 14}" width="${W - 28}" height="${h - 28}" rx="22" fill="none" stroke="#d8d1bd" stroke-width="3" stroke-dasharray="1 8" stroke-linecap="round"/><rect x="24" y="${y0 + 24}" width="${W - 48}" height="${h - 48}" rx="16" fill="none" stroke="#e3ddcb" stroke-width="1.4"/>`;
+    // a paper napkin: bright white with a lace edge all the way round (scallops, eyelets, a stitched hem) and nothing drawn on the middle
+    const inset = 12, r = 10, step = 20, lace = '#d9d2bf', eye = '#cfc7b1';
+    let loops = '', eyes = '', petals = '';
+    const along = (x0, yy0, x1, yy1, nx, ny) => {
+      const len = Math.hypot(x1 - x0, yy1 - yy0), n = Math.round(len / step), ux = (x1 - x0) / len, uy = (yy1 - yy0) / len;
+      for (let i = 0; i <= n; i++) {
+        const t = i * (len / n), x = x0 + ux * t, y = yy0 + uy * t;
+        loops += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}"/>`;                                    // scallop
+        if (i < n) { const mx = x + ux * step / 2, my = y + uy * step / 2; eyes += `<circle cx="${(mx - nx * 9).toFixed(1)}" cy="${(my - ny * 9).toFixed(1)}" r="2.1"/>`; }   // eyelet between scallops, just inside
+        if (i % 3 === 1) { const px = x - nx * 24, py = y - ny * 24; petals += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3.2"/><circle cx="${(px - nx * 7).toFixed(1)}" cy="${(py - ny * 7).toFixed(1)}" r="1.4"/>`; }   // a row of little flowers along the hem
+      }
+    };
+    along(inset, inset, W - inset, inset, 0, -1); along(W - inset, inset, W - inset, h - inset, 1, 0); along(W - inset, h - inset, inset, h - inset, 0, 1); along(inset, h - inset, inset, inset, -1, 0);
+    bg += `<rect x="0" y="${y0 - 2}" width="${W}" height="${h + 4}" fill="#ffffff"/>`;
+    bg += `<g fill="#ffffff" stroke="${lace}" stroke-width="1.2">${loops}</g>`;                                        // scallops bulge outward past the inset line
+    bg += `<rect x="${inset}" y="${inset}" width="${W - 2 * inset}" height="${h - 2 * inset}" fill="#ffffff"/>`;        // the sheet proper, covering the inner halves of the loops
+    bg += `<rect x="${inset}" y="${inset}" width="${W - 2 * inset}" height="${h - 2 * inset}" fill="none" stroke="${lace}" stroke-width="1"/>`;
+    bg += `<g fill="none" stroke="${eye}" stroke-width="1">${eyes}</g><g fill="none" stroke="${eye}" stroke-width=".9">${petals}</g>`;
+    bg += `<rect x="${inset + 30}" y="${inset + 30}" width="${W - 2 * inset - 60}" height="${h - 2 * inset - 60}" rx="4" fill="none" stroke="${lace}" stroke-width="1" stroke-dasharray="3 5" stroke-linecap="round"/>`;   // stitched hem
+    bg += `<rect x="0" y="${y0 - 2}" width="${W}" height="${h + 4}" fill="${col}" fill-opacity=".3"/>`;                 // the player's paper colour as a wash over all of it
     return bg;
   }
   bg += `<rect x="0" y="${y0 - 2}" width="${W}" height="${h + 4}" fill="${col}"/>`;
-  if (p === 'lined') { let g = ''; for (let y = y0 + 25; y < y0 + h; y += 25) g += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`; bg += `<g stroke="#b9d0e4" stroke-width="1">${g}</g>`; }
-  else if (p === 'graph') { let g = ''; for (let x = 50; x < W; x += 50) g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + h}"/>`; for (let y = y0 + 50; y < y0 + h; y += 50) g += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`; let f = ''; for (let x = 10; x < W; x += 10) if (x % 50) f += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + h}"/>`; for (let y = y0 + 10; y < y0 + h; y += 10) if ((y - y0) % 50) f += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`; bg += `<g stroke="#cfe0ee" stroke-width=".5">${f}</g><g stroke="#a9c6dd" stroke-width="1">${g}</g>`; }
+  // ruled and squared paper are offset by half a step so no line runs along the middle, where the fold will be
+  if (p === 'lined') { let g = ''; for (let y = y0 + 12.5; y < y0 + h; y += 25) g += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`; bg += `<g stroke="#b9d0e4" stroke-width="1">${g}</g>`; }
+  else if (p === 'graph') { let g = ''; for (let x = 50; x < W; x += 50) g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + h}"/>`; for (let y = y0 + 25; y < y0 + h; y += 50) g += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`; let f = ''; for (let x = 10; x < W; x += 10) if (x % 50) f += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + h}"/>`; for (let y = y0 + 5; y < y0 + h; y += 10) if ((y - y0 - 25) % 50) f += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`; bg += `<g stroke="#cfe0ee" stroke-width=".5">${f}</g><g stroke="#a9c6dd" stroke-width="1">${g}</g>`; }
   else if (p === 'crumpled') {
     // creases with a lit side and a shadow side, and a few faint facets
     let facets = '', lines = '';
-    for (let i = 0; i < 12; i++) { const cx = rnd() * W, cy = y0 + rnd() * h, pts = []; for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + rnd(); const r = 70 + rnd() * 180; pts.push(`${(cx + Math.cos(a) * r).toFixed(0)},${(cy + Math.sin(a) * r).toFixed(0)}`); } facets += `<polygon points="${pts.join(' ')}" fill="${rnd() < 0.5 ? '#000' : '#fff'}" fill-opacity=".05"/>`; }
-    for (let i = 0; i < 18; i++) { let x = rnd() * W, y = y0 + rnd() * h, a = rnd() * Math.PI * 2, d = `M${x.toFixed(0)},${y.toFixed(0)}`; const segs = 3 + Math.floor(rnd() * 3); for (let k = 0; k < segs; k++) { const len = 70 + rnd() * 160; a += (rnd() - 0.5) * 1.4; x += Math.cos(a) * len; y += Math.sin(a) * len; d += ` L${x.toFixed(0)},${y.toFixed(0)}`; } lines += `<path d="${d}" transform="translate(1.4,1.4)" stroke="#fff" stroke-width="1.6" stroke-opacity=".95"/><path d="${d}" stroke="#b3a78c" stroke-width="1.3" stroke-opacity=".85"/>`; }
+    // nothing may run along the middle of the sheet: an edge that is nearly level and close to the crease would read as the fold
+    const mid = y0 + h / 2, levelNearMid = (ya, yb) => Math.abs(ya - yb) < 60 && Math.abs((ya + yb) / 2 - mid) < 70;
+    for (let i = 0; i < 12; i++) {
+      let pts = null;
+      for (let t = 0; t < 24 && !pts; t++) {
+        const cx = rnd() * W, cy = y0 + rnd() * h, cand = [];
+        for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + rnd(); const r = 70 + rnd() * 180; cand.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); }
+        if (!cand.some((q, k) => levelNearMid(q[1], cand[(k + 1) % 5][1]))) pts = cand;
+      }
+      if (pts) facets += `<polygon points="${pts.map(q => `${q[0].toFixed(0)},${q[1].toFixed(0)}`).join(' ')}" fill="${rnd() < 0.5 ? '#000' : '#fff'}" fill-opacity=".05"/>`;
+    }
+    for (let i = 0; i < 18; i++) {
+      let x = rnd() * W, y = y0 + rnd() * h, a = rnd() * Math.PI * 2, d = `M${x.toFixed(0)},${y.toFixed(0)}`; const segs = 3 + Math.floor(rnd() * 3);
+      for (let k = 0; k < segs; k++) {
+        const len = 70 + rnd() * 160; a += (rnd() - 0.5) * 1.4;
+        let nx = x + Math.cos(a) * len, ny = y + Math.sin(a) * len;
+        if (levelNearMid(y, ny)) { a += a < 0 ? -0.9 : 0.9; nx = x + Math.cos(a) * len; ny = y + Math.sin(a) * len; }   // steer the crease away from the fold
+        if (levelNearMid(y, ny)) break;
+        x = nx; y = ny; d += ` L${x.toFixed(0)},${y.toFixed(0)}`;
+      }
+      lines += `<path d="${d}" transform="translate(1.4,1.4)" stroke="#fff" stroke-width="1.6" stroke-opacity=".95"/><path d="${d}" stroke="#b3a78c" stroke-width="1.3" stroke-opacity=".85"/>`;
+    }
     bg += facets + `<g fill="none">${lines}</g>`;
   }
   if (p !== 'graph') bg += `<line x1="46" y1="${y0 - 2}" x2="46" y2="${y0 + h + 2}" stroke="#e9a4a4" stroke-width="1.2"/>`;
